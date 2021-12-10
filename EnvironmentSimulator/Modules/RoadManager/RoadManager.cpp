@@ -9497,15 +9497,20 @@ Position::ErrorCode Position::SetRouteS(Route *route, double route_s)
 	OpenDrive *od = route->waypoint_[0].GetOpenDrive();
 
 	double initial_s_offset = 0;
-	double initial_route_direction = route->GetWayPointDirection(0);
+	int initial_route_direction = route->GetWayPointDirection(0);
 
 	if (initial_route_direction > 0)
 	{
 		initial_s_offset = route->waypoint_[0].GetS();
 	}
-	else
+	else if (initial_route_direction < 0)
 	{
 		initial_s_offset = od->GetRoadById(route->waypoint_[0].GetTrackId())->GetLength() - route->waypoint_[0].GetS();
+	}
+	else
+	{
+		LOG("Failed to find a valid path to second waypoint");
+		return ErrorCode::ERROR_INVALID_ROUTE;
 	}
 
 	double route_length = 0;
@@ -9527,7 +9532,7 @@ Position::ErrorCode Position::SetRouteS(Route *route, double route_s)
 			if (route_direction == 0)
 			{
 				LOG("Unexpected lack of connection within route at waypoint %d", i);
-				return ErrorCode::ERROR_GENERIC;
+				return ErrorCode::ERROR_INVALID_ROUTE;
 			}
 
 			local_s = s_route_ - route_length + initial_s_offset;
@@ -9642,14 +9647,14 @@ int Route::AddWaypoint(Position* position)
 			if (waypoint_.size() == 1)
 			{
 				// Ignore
-				LOG("Ignoring additional waypoint for road %d (s %.2f)\n",
+				LOG("Ignoring additional waypoint for road %d (s %.2f)",
 					position->GetTrackId(), position->GetS());
 				return -1;
 			}
 			else  // at least two road-unique waypoints
 			{
 				// Keep this, remove previous
-				LOG("Removing previous waypoint for same road %d (at s %.2f)\n",
+				LOG("Removing previous waypoint for same road %d (at s %.2f)",
 					waypoint_.back().GetTrackId(), waypoint_.back().GetS());
 				waypoint_.pop_back();
 			}

@@ -1671,6 +1671,7 @@ namespace roadmanager
 			ERROR_END_OF_ROAD = -2,
 			ERROR_END_OF_ROUTE = -3,
 			ERROR_OFF_ROAD = -4,
+			ERROR_INVALID_ROUTE = -5,
 		};
 
 		enum class UpdateTrackPosMode
