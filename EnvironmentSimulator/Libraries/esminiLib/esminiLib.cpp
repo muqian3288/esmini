@@ -1794,7 +1794,7 @@ SE_DLL_API int SE_GetNumberOfRoutePoints(int object_id)
 	Object *obj = player->scenarioEngine->entities.object_[object_id];
 	if (obj->pos_.GetRoute())
 	{
-		return obj->pos_.GetRoute()->waypoint_.size();
+		return obj->pos_.GetRoute()->all_waypoints_.size();
 	}
 	else
 	{
@@ -1815,14 +1815,14 @@ SE_DLL_API int SE_GetRoutePoint(int object_id, int route_index, SE_RouteInfo *ro
 		return -1;
 	}
 	Object *obj = player->scenarioEngine->entities.object_[object_id];
-	routeinfo->x = obj->route_->waypoint_[route_index].GetX();
-	routeinfo->y = obj->route_->waypoint_[route_index].GetY();
-	routeinfo->z = obj->route_->waypoint_[route_index].GetZ();
-	routeinfo->roadId = obj->route_->waypoint_[route_index].GetTrackId();
-	routeinfo->junctionId = obj->route_->waypoint_[route_index].GetJunctionId();
-	routeinfo->laneId = obj->route_->waypoint_[route_index].GetLaneId();
-	routeinfo->laneOffset = obj->route_->waypoint_[route_index].GetOffset();
-	routeinfo->s = obj->route_->waypoint_[route_index].GetS();
-	routeinfo->t = obj->route_->waypoint_[route_index].GetT();
+	routeinfo->x = obj->pos_.GetRoute()->all_waypoints_[route_index].GetX();
+	routeinfo->y = obj->pos_.GetRoute()->all_waypoints_[route_index].GetY();
+	routeinfo->z = obj->pos_.GetRoute()->all_waypoints_[route_index].GetZ();
+	routeinfo->roadId = obj->pos_.GetRoute()->all_waypoints_[route_index].GetTrackId();
+	routeinfo->junctionId = obj->pos_.GetRoute()->all_waypoints_[route_index].GetJunctionId();
+	routeinfo->laneId = obj->pos_.GetRoute()->all_waypoints_[route_index].GetLaneId();
+	routeinfo->laneOffset = obj->pos_.GetRoute()->all_waypoints_[route_index].GetOffset();
+	routeinfo->s = obj->pos_.GetRoute()->all_waypoints_[route_index].GetS();
+	routeinfo->t = obj->pos_.GetRoute()->all_waypoints_[route_index].GetT();
 }
 }

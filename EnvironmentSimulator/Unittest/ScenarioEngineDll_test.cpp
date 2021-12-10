@@ -2298,11 +2298,23 @@ TEST(APITest, TestGetRoute)
 	std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/highway_exit_with_route.xosc";
 
 	EXPECT_EQ(SE_Init(scenario_file.c_str(), 0, 0, 0, 0), 0);
-	SE_Step();
-	SE_Step();
+
 	int num_of_points = SE_GetNumberOfRoutePoints(0);
 	EXPECT_EQ(num_of_points,4);
 	
+	SE_RouteInfo route_info;
+	SE_GetRoutePoint(0,0,&route_info);
+	EXPECT_EQ(route_info.t,-1.5);
+	EXPECT_EQ(route_info.s,15);
+	EXPECT_EQ(route_info.x,15);
+	EXPECT_EQ(route_info.y,-1.5);
+	SE_GetRoutePoint(0,1,&route_info);
+	EXPECT_EQ(route_info.t,-4.5);
+	EXPECT_EQ(route_info.s,150);
+	EXPECT_EQ(route_info.x,150);
+	EXPECT_EQ(route_info.y,-4.5);
+	
+
 
 	SE_Close();
 }
@@ -2312,7 +2324,7 @@ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 
 #if 0   // set to 1 and modify filter to run one single test
-	testing::GTEST_FLAG(filter) = "*TestExternalDriver*";
+	testing::GTEST_FLAG(filter) = "*TestGetRoute*";
 #else
 	SE_LogToConsole(false);
 #endif
