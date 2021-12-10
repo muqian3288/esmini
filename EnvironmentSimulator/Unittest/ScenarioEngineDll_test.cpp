@@ -2274,7 +2274,7 @@ TEST(SimpleVehicleTest, TestControl)
 	SE_Close();
 }
 
-TEST(APITest, TestGetNames)
+TEST(APITest, TestGetName)
 {
 	std::string scenario_file = "../../../resources/xosc/cut-in.xosc";
 
@@ -2288,6 +2288,21 @@ TEST(APITest, TestGetNames)
 	EXPECT_STREQ(SE_GetObjectName(1), "OverTaker");
 	EXPECT_STREQ(SE_GetObjectTypeName(1), "car_red");
 	EXPECT_STREQ(SE_GetObjectModelFileName(1), "car_red.osgb");
+
+	SE_Close();
+}
+
+
+TEST(APITest, TestGetRoute)
+{
+	std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/highway_exit_with_route.xosc";
+
+	EXPECT_EQ(SE_Init(scenario_file.c_str(), 0, 0, 0, 0), 0);
+	SE_Step();
+	SE_Step();
+	int num_of_points = SE_GetNumberOfRoutePoints(0);
+	EXPECT_EQ(num_of_points,4);
+	
 
 	SE_Close();
 }
