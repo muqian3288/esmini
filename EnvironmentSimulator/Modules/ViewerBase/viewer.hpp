@@ -309,20 +309,13 @@ namespace viewer
 		osg::LOD* node_;
 	};
 
+	// Callback for fetching key strokes
 	typedef struct
 	{
 		int key_;
 		int modKeyMask_;
 		bool down_;
 	} KeyEvent;
-
-	typedef enum
-	{
-		ENTITY_HIDE,
-		ENTITY_3D_MODEL,
-		ENTITY_BOUNDINGBOX,
-		ENTITY_BOTH
-	} ENTITY_SHOW_MODE;
 
 	typedef void (*KeyEventCallbackFunc)(KeyEvent*, void*);
 
@@ -331,6 +324,16 @@ namespace viewer
 		KeyEventCallbackFunc func;
 		void* data;
 	} KeyEventCallback;
+
+	// Callback for fetching rendered image
+	typedef void (*ImageCallbackFunc)(OffScreenImage*, void*);
+
+	typedef struct
+	{
+		ImageCallbackFunc func;
+		void* data;
+	} ImageCallback;
+
 
 	class Viewer
 	{
@@ -365,11 +368,15 @@ namespace viewer
 
 		std::string exe_path_;
 		std::vector<KeyEventCallback> callback_;
+		ImageCallback imgCallback_;
 
 		osg::ref_ptr<osg::Camera> infoTextCamera;
 		osg::ref_ptr<osgText::Text> infoText;
 
 		std::vector<PolyLine*> polyLine_;
+		OffScreenImage capturedImage_;
+		int captureCounter_;
+		SE_Mutex renderMutex;
 
 		Viewer(roadmanager::OpenDrive *odrManager, const char* modelFilename, const char* scenarioFilename, const char* exe_path, osg::ArgumentParser arguments, SE_Options* opt = 0);
 		~Viewer();
@@ -421,10 +428,17 @@ namespace viewer
 		void SetWindowTitleFromArgs(std::vector<std::string> &arg);
 		void SetWindowTitleFromArgs(int argc, char* argv[]);
 		void RegisterKeyEventCallback(KeyEventCallbackFunc func, void* data);
+		void RegisterImageCallback(ImageCallbackFunc func, void* data);
 		PolyLine* AddPolyLine(osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize=0);
 		PolyLine* AddPolyLine(osg::Group* parent, osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize=0);
-		void CaptureNextFrame();
-		void CaptureContinuously(bool state);
+
+		void SaveImagesToFile(int nrOfFrames);
+		int GetSaveImagesToFile() { return saveImagesToFile_; }
+
+		void SaveImagesToRAM(bool state) { saveImagesToRAM_ = state; };
+		bool GetSaveImagesToRAM() { return saveImagesToRAM_; }
+
+		void Frame();
 
 	private:
 
@@ -438,7 +452,10 @@ namespace viewer
 		bool keyLeft_;
 		bool keyRight_;
 		bool quit_request_;
+		bool saveImagesToRAM_;
+		int saveImagesToFile_;
 		osg::ref_ptr<osgViewer::ScreenCaptureHandler> screenCaptureHandler_;
+		osgViewer::ViewerBase::ThreadingModel initialThreadingModel_;
 	};
 
 	class ViewerEventHandler : public osgGA::GUIEventHandler

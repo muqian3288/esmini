@@ -2292,12 +2292,132 @@ TEST(APITest, TestGetNames)
 	SE_Close();
 }
 
+static bool CheckFileExists(std::string filename, long long timestamp)
+{
+	struct stat fileStatus;
+
+	if (stat(filename.c_str(), &fileStatus) == 0)
+	{
+		if (fileStatus.st_mtime > timestamp)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+TEST(APITest, TestFetchImage)
+{
+	struct stat fileStatus;
+	long long oldModTime = 0;
+	std::string screenshotFilename0 = "screen_shot_00000.tga";
+	std::string screenshotFilename1 = "screen_shot_00001.tga";
+	std::string screenshotFilename2 = "screen_shot_00002.tga";
+	std::string screenshotFilename3 = "screen_shot_00003.tga";
+	std::string screenshotFilename4 = "screen_shot_00004.tga";
+	std::string screenshotFilename5 = "screen_shot_00005.tga";
+
+	std::string scenario_file = "../../../resources/xosc/cut-in_simple.xosc";
+
+	// Fetch timestamp of any old screenshot0
+	if (stat(screenshotFilename0.c_str(), &fileStatus) == 0)
+	{
+		oldModTime = fileStatus.st_mtime;
+	}
+
+	EXPECT_EQ(SE_Init(scenario_file.c_str(), 0, 2, 0, 0), 0);
+	ASSERT_EQ(SE_GetNumberOfObjects(), 2);
+	SE_StepDT(0.1f);
+
+	SE_Image image;
+ 	SE_FetchImage(&image);
+	ASSERT_NE(image.data, nullptr);
+
+	EXPECT_EQ(image.width, 800);
+	EXPECT_EQ(image.height, 400);
+	EXPECT_EQ(image.pixelSize, 3);
+
+	// Check RGB color values of a random pixel x=222, y=250
+	int pixelNr = ((400-1) - 250) * 800 + 222;  // image stored upside down
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 71);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 90);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 44);  // B
+
+	// Save file for possible post processing or inspection
+	SE_WriteTGA("offscreen0.tga", image.width, image.height, image.data, image.pixelSize, image.pixelFormat, true);
+
+	// Verify that any screenshot file is old, since that feature has not been enabled yet
+	EXPECT_EQ(CheckFileExists(screenshotFilename0, oldModTime), false);
+
+	SE_StepDT(0.1f);  // Step once to create another image
+	SE_FetchImage(&image);
+	SE_WritePPM("offscreen1.ppm", image.width, image.height, image.data, image.pixelSize, image.pixelFormat, true);
+
+	EXPECT_EQ(image.width, 800);
+	EXPECT_EQ(image.height, 400);
+	EXPECT_EQ(image.pixelSize, 3);
+
+	// Check pixel
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 67);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 82);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 39);  // B
+
+	SE_StepDT(0.1f);  // And another one
+
+	SE_FetchImage(&image);
+
+	EXPECT_EQ(image.width, 800);
+	EXPECT_EQ(image.height, 400);
+	EXPECT_EQ(image.pixelSize, 3);
+
+	// Check pixel
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 44);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 85);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 68);  // B
+
+	// Verify that we can't fetch images when feature disabled
+	EXPECT_EQ(SE_SaveImagesToRAM(false), 0);
+	SE_StepDT(0.1f);
+	EXPECT_EQ(SE_FetchImage(&image), -1);
+
+	// Now test screenshot functionality, starting with creating just two images
+	EXPECT_EQ(SE_SaveImagesToFile(2), 0);
+
+	// Check timestamp again of any old screenshot0
+	EXPECT_EQ(CheckFileExists(screenshotFilename0, oldModTime), false);
+
+	// Run a few steps to create the screenshot images
+	for (int i=0; i<3; i++) SE_StepDT(0.1f);
+	SE_sleep(100);  // Allow for last image to be created (running in a separate thread)
+
+	EXPECT_EQ(CheckFileExists(screenshotFilename0, oldModTime), true);
+	ASSERT_EQ(stat(screenshotFilename0.c_str(), &fileStatus), 0);
+	oldModTime = fileStatus.st_mtime;  // use timestamp of first image as base for following comparisons
+	EXPECT_EQ(CheckFileExists(screenshotFilename1, oldModTime - 1), true);  // -1 since timestamps could be equal
+	// Make sure no screenshot2 has been created
+	EXPECT_EQ(CheckFileExists(screenshotFilename2, oldModTime - 1), false);
+
+	// Now test continuous snapshot functionality
+	EXPECT_EQ(SE_SaveImagesToFile(-1), 0);
+
+	for (int i = 0; i < 3; i++) SE_StepDT(0.1f);  // step to create three additional screenshots
+	SE_sleep(100);  // Allow for last image to be created (running in a separate thread)
+	EXPECT_EQ(CheckFileExists(screenshotFilename2, oldModTime - 1), true);
+	EXPECT_EQ(CheckFileExists(screenshotFilename3, oldModTime - 1), true);
+	EXPECT_EQ(CheckFileExists(screenshotFilename4, oldModTime - 1), true);
+	// Make sure no screenshot5 has been created
+	EXPECT_EQ(CheckFileExists(screenshotFilename5, oldModTime - 1), false);
+
+	SE_Close();
+}
+
 int main(int argc, char **argv)
 {
 	testing::InitGoogleTest(&argc, argv);
 
 #if 0   // set to 1 and modify filter to run one single test
-	testing::GTEST_FLAG(filter) = "*TestExternalDriver*";
+	testing::GTEST_FLAG(filter) = "*TestFetchImage*";
 #else
 	SE_LogToConsole(false);
 #endif

@@ -32,6 +32,15 @@ using namespace scenarioengine;
 void ReportKeyEvent(viewer::KeyEvent *keyEvent, void *data);
 #endif
 
+static struct
+{
+	viewer::ImageCallbackFunc func;
+	void* data;
+} imageCallback = { 0, 0 };
+
+
+void RegisterImageCallback(viewer::ImageCallbackFunc func, void* data);
+
 class ScenarioPlayer
 {
 public:
@@ -60,7 +69,8 @@ public:
 		void *data;
 	} ObjCallback;
 
-	ScenarioPlayer(int &argc, char *argv[]);
+
+	ScenarioPlayer(int& argc, char* argv[]);
 	~ScenarioPlayer();
 	bool IsQuitRequested() { return quit_request; }
 	void SetOSIFileStatus(bool is_on, const char *filename = 0);
@@ -114,9 +124,15 @@ public:
 	int InitViewer();
 	void CloseViewer();
 	void ViewerFrame();
-	void CaptureNextFrame();
-	void CaptureContinuously(bool state);
+
+	int SaveImagesToRAM(bool state);
+	int SaveImagesToFile(int nrOfFrames);
+
+	OffScreenImage *FetchCapturedImagePtr();
 	void AddCustomCamera(double x, double y, double z, double h, double p);
+
+	void PrintUsage();
+
 #else
 	void *viewer_;
 #endif
@@ -136,7 +152,6 @@ private:
 	SE_Mutex mutex;
 	bool quit_request;
 	bool threads;
-	bool headless;
 	bool launch_server;
 	bool disable_controllers_;
 	double fixed_timestep_;

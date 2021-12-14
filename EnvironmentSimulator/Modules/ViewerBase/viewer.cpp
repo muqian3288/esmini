@@ -1066,6 +1066,88 @@ void EntityModel::SetTransparency(double factor)
 	blend_color_->setConstantColor(osg::Vec4(1, 1, 1, 1-factor));
 }
 
+struct PreDrawCallback : public osg::Camera::DrawCallback
+{
+	PreDrawCallback(Viewer* viewer)
+	{
+		viewer_ = viewer;
+	}
+
+	virtual void operator() (osg::RenderInfo& renderInfo) const
+	{
+		viewer_->renderMutex.Lock();
+	}
+
+	viewer::Viewer* viewer_;
+};
+
+struct FetchImage : public osg::Camera::DrawCallback
+{
+	FetchImage(Viewer* viewer)
+	{
+		image_ = new osg::Image;
+		viewer_ = viewer;
+		viewer_->capturedImage_ = { 0, 0, 0, 0, 0 };
+	}
+
+	virtual void operator() (osg::RenderInfo& renderInfo) const
+	{
+		if (viewer_ != nullptr &&
+			(viewer_->GetSaveImagesToRAM() ||
+			 viewer_->GetSaveImagesToFile() != 0 ||
+			 viewer_->imgCallback_.func != nullptr))
+		{
+			osg::Camera* camera = renderInfo.getCurrentCamera();
+			osg::Viewport* viewport = camera ? camera->getViewport() : 0;
+
+			if (viewport && image_.valid())
+			{
+				image_->readPixels(int(viewport->x()), int(viewport->y()), int(viewport->width()), int(viewport->height()),
+					GL_BGR,  // only GL_RGB and GL_BGR supported for now
+					GL_UNSIGNED_BYTE);
+
+				if (image_->getPixelFormat() == GL_RGB || image_->getPixelFormat() == GL_BGR)
+				{
+					viewer_->capturedImage_.width = image_->s();
+					viewer_->capturedImage_.height = image_->t();
+					viewer_->capturedImage_.pixelSize = 3;
+					viewer_->capturedImage_.pixelFormat = static_cast<int>(image_->getPixelFormat());
+					viewer_->capturedImage_.data = image_->data();
+
+					if (viewer_->GetSaveImagesToFile() != 0)
+					{
+						static char filename[64];
+						snprintf(filename, 64, "screen_shot_%05d.tga", viewer_->captureCounter_);
+						SE_WriteTGA(filename, viewer_->capturedImage_.width, viewer_->capturedImage_.height, viewer_->capturedImage_.data,
+							viewer_->capturedImage_.pixelSize, viewer_->capturedImage_.pixelFormat, true);
+						viewer_->captureCounter_++;
+
+						// If not continuous (-1), decrement frame counter
+						if (viewer_->GetSaveImagesToFile() > 0)
+						{
+							viewer_->SaveImagesToFile(viewer_->GetSaveImagesToFile() - 1);
+						}
+					}
+				}
+				else
+				{
+					printf("Unsupported pixel format 0x%x\n", image_->getPixelFormat());
+					viewer_->capturedImage_ = { 0, 0, 0, 0, 0 };  // Reset image data
+				}
+
+				if (viewer_->imgCallback_.func != nullptr)
+				{
+					viewer_->imgCallback_.func(&viewer_->capturedImage_, viewer_->imgCallback_.data);
+				}
+			}
+		}
+		viewer_->renderMutex.Unlock();
+	}
+
+	mutable osg::ref_ptr<osg::Image> image_;
+	viewer::Viewer* viewer_;
+};
+
 Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, const char* scenarioFilename, const char* exe_path, osg::ArgumentParser arguments, SE_Options* opt)
 {
 	odrManager_ = odrManager;
@@ -1102,6 +1184,10 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 	shadow_node_ = NULL;
 	environment_ = NULL;
 	roadGeom = NULL;
+	captureCounter_ = 0;
+	saveImagesToRAM_ = true;  // Default is to read back rendered image for possible fetch via API
+	saveImagesToFile_ = 0;
+	imgCallback_ = { nullptr, nullptr };
 
 	int aa_mode = DEFAULT_AA_MULTISAMPLES;
 	if (opt && (arg_str = opt->GetOptionArg("aa_mode")) != "")
@@ -1371,6 +1457,18 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 		osgViewer_->getCamera()->setClearColor(osg::Vec4(0.5f, 0.75f, 1.0f, 0.0f));
 	}
 
+	// Setup off screen rendering
+	// No window AND no capture requests implies headless
+	if (opt->GetOptionSet("headless"))
+	{
+		osg::ref_ptr<osg::GraphicsContext::Traits> traits = const_cast<osg::GraphicsContext::Traits*>(osgViewer_->getCamera()->getGraphicsContext()->getTraits());
+		traits->windowDecoration = false;
+		traits->doubleBuffer = false;
+		traits->pbuffer = true;
+		traits->sharedContext = 0;
+		osgViewer_->getCamera()->setGraphicsContext(osg::GraphicsContext::createGraphicsContext(traits));
+	}
+
 	// add the window size toggle handler
 	osgViewer_->addEventHandler(new osgViewer::WindowSizeHandler);
 
@@ -1403,9 +1501,10 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 	osgViewer_->addEventHandler(new osgViewer::LODScaleHandler);
 
 	// add the screen capture handler
+#if 0  // Replaced by esmini custom image handling
 	screenCaptureHandler_ = new osgViewer::ScreenCaptureHandler;
 	osgViewer_->addEventHandler(screenCaptureHandler_);
-
+#endif
 	osgViewer_->setReleaseContextAtEndOfFrameHint(false);
 
 	// Light
@@ -1441,11 +1540,16 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 	infoTextCamera->setAllowEventFocus(false);
 	infoTextCamera->addChild(textGeode.get());
 	infoTextCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	osg::GraphicsContext* context = dynamic_cast<osgViewer::GraphicsWindow*>(osgViewer_->getCamera()->getGraphicsContext());
-	SetInfoTextProjection(context->getTraits()->width, context->getTraits()->height);
+
+	osg::ref_ptr<osg::GraphicsContext::Traits> traits = const_cast<osg::GraphicsContext::Traits*>(osgViewer_->getCamera()->getGraphicsContext()->getTraits());
+	SetInfoTextProjection(traits->width, traits->height);
 
 	rootnode_->addChild(infoTextCamera);
 
+	// Register callback for fetch rendered image into RAM buffer
+	osgViewer_->getCamera()->setInitialDrawCallback(new PreDrawCallback(this));
+	osgViewer_->getCamera()->setFinalDrawCallback(new FetchImage(this));
+	initialThreadingModel_ = osgViewer_->getThreadingModel();
 }
 
 Viewer::~Viewer()
@@ -1472,8 +1576,8 @@ void Viewer::PrintUsage()
 	printf("Additional OSG graphics options:\n");
 	printf("  --clear-color <color>         Set the background color of the viewer in the form \"r,g,b[,a]\"\n");
 	printf("  --screen <num>                Set the screen to use when multiple screens are present\n");
-	printf("  --window <x y w h>            Set the position (x,y) and size (w,h) of the viewer window\n");
-	printf("  --borderless-window <x y w h>	Set the position(x, y) and size(w, h) of a borderless viewer window\n");
+	printf("  --window <x y w h>            Set the position x, y and size w, h of the viewer window. -1 -1 -1 -1 for fullscreen.\n");
+	printf("  --borderless-window <x y w h>	Set the position x, y and size w, h of a borderless viewer window. -1 -1 -1 -1 for fullscreen.\n");
 	printf("\n");
 }
 
@@ -2808,22 +2912,20 @@ void Viewer::RegisterKeyEventCallback(KeyEventCallbackFunc func, void* data)
 	callback_.push_back(cb);
 }
 
-void Viewer::CaptureNextFrame()
+void Viewer::RegisterImageCallback(ImageCallbackFunc func, void* data)
 {
-	screenCaptureHandler_->captureNextFrame(*osgViewer_);
+	imgCallback_.func = func;
+	imgCallback_.data = data;
 }
 
-void Viewer::CaptureContinuously(bool state)
+void Viewer::SaveImagesToFile(int nrOfFrames)
 {
-	if (state == true)
-	{
-		screenCaptureHandler_->startCapture();
-		screenCaptureHandler_->setFramesToCapture(0);
-	}
-	else
-	{
-		screenCaptureHandler_->stopCapture();
-	}
+	saveImagesToFile_ = nrOfFrames;
+}
+
+void Viewer::Frame()
+{
+	osgViewer_->frame();
 }
 
 bool ViewerEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter&)
@@ -2837,6 +2939,27 @@ bool ViewerEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActi
 
 	switch (ea.getKey())
 	{
+	case('C'):
+	case('c'):
+		if (ea.getEventType() & osgGA::GUIEventAdapter::KEYDOWN)
+		{
+			if (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)
+			{
+				if (viewer_->GetSaveImagesToFile() == 0)
+				{
+					viewer_->SaveImagesToFile(-1);
+				}
+				else
+				{
+					viewer_->SaveImagesToFile(0);
+				}
+			}
+			else
+			{
+				viewer_->SaveImagesToFile(1);  // single frame
+			}
+		}
+		break;
 	case(osgGA::GUIEventAdapter::KEY_K):
 		if (ea.getEventType() & osgGA::GUIEventAdapter::KEYDOWN)
 		{

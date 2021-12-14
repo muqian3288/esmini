@@ -94,6 +94,22 @@ enum class EntityScaleMode
 
 std::string ControlDomain2Str(ControlDomains domains);
 
+enum class PixelFormat
+{
+	UNSPECIFIED = 0,
+	RGB = 0x1907,   // GL_RGB
+	BGR = 0x80E0    // GL_BGR
+};
+
+struct OffScreenImage
+{
+	int width;
+	int height;
+	int pixelSize;
+	int pixelFormat;  // According to enum class PixelFormat
+	unsigned char* data;
+};
+
 // Useful operations
 
 
@@ -440,6 +456,7 @@ public:
 	std::string GetOptionArg(std::string opt, int index = 0);
 	int ParseArgs(int *argc, char* argv[]);
 	std::vector<std::string>& GetOriginalArgs() { return originalArgs_; }
+	bool IsInOriginalArgs(std::string opt);
 
 private:
 	std::vector<SE_Option> option_;
@@ -631,3 +648,32 @@ public:
 	void SetLogFilePath(std::string logFilePath);
 	std::string GetLogFilePath() { return logFilePath_; }
 };
+
+/**
+ Store RGB (3*8 bits color values) image data as a PPM image file
+ PPM info: http://paulbourke.net/dataformats/ppm/
+ @param filename File name including extension which should be ".ppm", e.g. "img0.ppm"
+ @param width Width
+ @param height Height
+ @param rgbData Array of color values
+ @param pixelSize 3 for RGB/BGR
+ @param pixelFormat 0=Unspecified, 0x1907=RGB (GL_RGB), 0x80E0=BGR (GL_BGR)
+ @param upsidedown false=lines stored from top to bottom, true=lines stored from bottom to top
+ @return 0 if OK, -1 if failed to open file, -2 if unexpected pixelSize
+*/
+int SE_WritePPM(const char* filename, int width, int height, const unsigned char* data, int pixelSize, int pixelFormat, bool upsidedown);
+
+/**
+ Store RGB or BGR (3*8 bits color values) image data as a TGA image file
+ TGA spec: https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
+ TGA brief: http://paulbourke.net/dataformats/tga/
+ @param filename File name including extension which should be ".tga", e.g. "img0.tga"
+ @param width Width
+ @param height Height
+ @param rgbData Array of color values
+ @param pixelSize 3 (RGB) or 4 (RGBA)
+ @param pixelFormat 0=Unspecified, 0x1907=RGB (GL_RGB), 0x80E0=BGR (GL_BGR)
+ @param upsidedown false=lines stored from top to bottom, true=lines stored from bottom to top
+ @return 0 if OK, -1 if failed to open file, -2 if unexpected pixelSize
+*/
+int SE_WriteTGA(const char* filename, int width, int height, const unsigned char* data, int pixelSize, int pixelFormat, bool upsidedown);

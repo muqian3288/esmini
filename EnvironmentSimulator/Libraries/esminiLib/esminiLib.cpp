@@ -31,6 +31,13 @@ static char **argv_ = 0;
 static int argc_ = 0;
 static std::vector<std::string> args_v;
 static bool logToConsole = true;
+static struct
+{
+	int x;
+	int y;
+	int w;
+	int h;
+} winDim = {60, 60, 800, 400} ;
 
 typedef struct
 {
@@ -40,6 +47,7 @@ typedef struct
 } SE_ObjCallback;
 
 static std::vector<SE_ObjCallback> objCallback;
+
 
 static void log_callback(const char *str)
 {
@@ -360,6 +368,11 @@ extern "C"
 		SE_Env::Inst().SetSeed(seed);
 	}
 
+	SE_DLL_API void SE_SetWindowPosAndSize(int x, int y, int w, int h)
+	{
+		winDim = { x, y, w, h };
+	}
+
 	SE_DLL_API int SE_SetOSITolerances(double maxLongitudinalDistance, double maxLateralDeviation)
 	{
 		SE_Env::Inst().SetOSIMaxLongitudinalDistance(maxLongitudinalDistance);
@@ -377,6 +390,50 @@ extern "C"
 		}
 
 		return InitScenario();
+	}
+
+	static int AddCommonArguments(int disable_ctrls, int use_viewer, int threads, int record)
+	{
+		if (use_viewer == 0)
+		{
+			AddArgument("--headless");
+		}
+		if (use_viewer == 1)
+		{
+			AddArgument("--window 60 60 800 400", true);
+		}
+		else if (use_viewer == 2)  // off_screen
+		{
+			AddArgument("--window 60 60 800 400", true);
+			AddArgument("--headless");
+		}
+		else if (use_viewer == 3)  // viewer+capture-to-file
+		{
+			AddArgument("--window 60 60 800 400", true);
+			AddArgument("--capture_screen");
+		}
+		else if (use_viewer == 3)  // off_screen+capture-to-file
+		{
+			AddArgument("--window 60 60 800 400", true);
+			AddArgument("--headless");
+			AddArgument("--capture_screen");
+		}
+		else   // no viewer at all
+		{
+			LOG("Unexpected value: %d for \"use_viewer\" parameter. Not within range (%d, %d)", use_viewer, 0, 3);
+		}
+
+		if (threads)
+		{
+			AddArgument("--threads");
+		}
+
+		if (disable_ctrls)
+		{
+			AddArgument("--disable_controllers");
+		}
+
+		return 0;
 	}
 
 	SE_DLL_API int SE_InitWithString(const char *oscAsXMLString, int disable_ctrls, int use_viewer, int threads, int record)
@@ -398,24 +455,8 @@ extern "C"
 			AddArgument("--record");
 			AddArgument("simulation.dat", false);
 		}
-		if (use_viewer)
-		{
-			AddArgument("--window 60 60 800 400", true);
-		}
-		else
-		{
-			AddArgument("--headless");
-		}
 
-		if (threads)
-		{
-			AddArgument("--threads");
-		}
-
-		if (disable_ctrls)
-		{
-			AddArgument("--disable_controllers");
-		}
+		AddCommonArguments(disable_ctrls, use_viewer, threads, record);
 
 		return InitScenario();
 	}
@@ -445,24 +486,8 @@ extern "C"
 			std::string datFilename = FileNameWithoutExtOf(oscFilename) + ".dat";
 			AddArgument(datFilename.c_str(), false);
 		}
-		if (use_viewer)
-		{
-			AddArgument("--window 60 60 800 400", true);
-		}
-		else
-		{
-			AddArgument("--headless");
-		}
 
-		if (threads)
-		{
-			AddArgument("--threads");
-		}
-
-		if (disable_ctrls)
-		{
-			AddArgument("--disable_controllers");
-		}
+		AddCommonArguments(disable_ctrls, use_viewer, threads, record);
 
 		return InitScenario();
 	}
@@ -1724,16 +1749,55 @@ extern "C"
 		state->speed = (float)((vehicle::Vehicle *)handleSimpleVehicle)->speed_;
 	}
 
-	SE_DLL_API int SE_CaptureNextFrame()
+	SE_DLL_API int SE_SaveImagesToRAM (bool state)
 	{
 #ifdef _USE_OSG
 		if (player)
 		{
-			player->CaptureNextFrame();
+			player->SaveImagesToRAM(state);
+			return 0;
 		}
 		else
 		{
 			return -1;
+		}
+#else
+		return -1;
+#endif
+	}
+
+	SE_DLL_API int SE_SaveImagesToFile(int nrOfFrames)
+	{
+#ifdef _USE_OSG
+		if (player)
+		{
+			player->SaveImagesToFile(nrOfFrames);
+			return 0;
+		}
+		else
+		{
+			return -1;
+		}
+#else
+		return -1;
+#endif
+	}
+
+	SE_DLL_API int SE_FetchImage(SE_Image* img)
+	{
+#ifdef _USE_OSG
+		if (player)
+		{
+			OffScreenImage* offScrImg = nullptr;
+			if ((offScrImg = player->FetchCapturedImagePtr()) == nullptr)
+			{
+				return -1;
+			}
+			img->width = offScrImg->width;
+			img->height = offScrImg->height;
+			img->pixelSize = offScrImg->pixelSize;
+			img->pixelFormat = static_cast<int>(offScrImg->pixelFormat);
+			img->data = offScrImg->data;
 		}
 
 		return 0;
@@ -1742,22 +1806,19 @@ extern "C"
 #endif
 	}
 
-	SE_DLL_API int SE_CaptureContinuously(bool state)
+	SE_DLL_API void SE_RegisterImageCallback(void (*fnPtr)(SE_Image*, void*), void* user_data)
 	{
-#ifdef _USE_OSG
-		if (player)
-		{
-			player->CaptureContinuously(state);
-		}
-		else
-		{
-			return -1;
-		}
+		RegisterImageCallback((viewer::ImageCallbackFunc)fnPtr, user_data);
+	}
 
-		return 0;
-#else
-		return -1;
-#endif
+	SE_DLL_API int SE_WritePPMImage(const char* filename, int width, int height, const unsigned char* data, int pixelSize, int pixelFormat, bool upsidedown)
+	{
+		return SE_WritePPM(filename, width, height, data, pixelSize, pixelFormat, upsidedown);
+	}
+
+	SE_DLL_API int SE_WriteTGAImage(const char* filename, int width, int height, const unsigned char* data, int pixelSize, int pixelFormat, bool upsidedown)
+	{
+		return SE_WriteTGA(filename, width, height, data, pixelSize, pixelFormat, upsidedown);
 	}
 
 	SE_DLL_API int SE_AddCustomCamera(double x, double y, double z, double h, double p)
