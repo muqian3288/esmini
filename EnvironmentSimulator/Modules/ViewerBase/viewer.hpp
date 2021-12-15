@@ -358,12 +358,11 @@ namespace viewer
 		osg::ref_ptr<osgGA::NodeTrackerManipulator> nodeTrackerManipulator_;
 		std::vector<EntityModel*> entities_;
 		float lodScale_;
-		osgViewer::Viewer *osgViewer_;
+		osgViewer::Viewer* osgViewer_;
 		osg::MatrixTransform* rootnode_;
 		osg::ref_ptr<osg::Group> roadSensors_;
 		osg::ref_ptr<osg::Group> trails_;
-		roadmanager::OpenDrive *odrManager_;
-		bool showInfoText;
+		roadmanager::OpenDrive* odrManager_;
 		RoadGeom* roadGeom;
 
 		std::string exe_path_;
@@ -376,9 +375,11 @@ namespace viewer
 		std::vector<PolyLine*> polyLine_;
 		OffScreenImage capturedImage_;
 		int captureCounter_;
-		SE_Mutex renderMutex;
 
-		Viewer(roadmanager::OpenDrive *odrManager, const char* modelFilename, const char* scenarioFilename, const char* exe_path, osg::ArgumentParser arguments, SE_Options* opt = 0);
+		SE_Semaphore renderSemaphore;
+		SE_Mutex imageMutex;
+
+		Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, const char* scenarioFilename, const char* exe_path, osg::ArgumentParser arguments, SE_Options* opt = 0);
 		~Viewer();
 		static void PrintUsage();
 		void AddCustomCamera(double x, double y, double z, double h, double p);
@@ -393,18 +394,18 @@ namespace viewer
 		void SetVehicleInFocus(int idx);
 		int GetEntityInFocus() { return currentCarInFocus_; }
 		EntityModel* CreateEntityModel(std::string modelFilepath, osg::Vec4 trail_color, EntityModel::EntityType type,
-			bool road_sensor, std::string name, OSCBoundingBox *boundingBox, EntityScaleMode scaleMode = EntityScaleMode::NONE);
+			bool road_sensor, std::string name, OSCBoundingBox* boundingBox, EntityScaleMode scaleMode = EntityScaleMode::NONE);
 		int AddEntityModel(EntityModel* model);
 		void RemoveCar(int index);
 		void RemoveCar(std::string name);
 		void ReplaceCar(int index, EntityModel* model);
 		int LoadShadowfile(std::string vehicleModelFilename);
 		int AddEnvironment(const char* filename);
-		osg::ref_ptr<osg::Group> LoadEntityModel(const char *filename, osg::BoundingBox& bb);
-		void UpdateSensor(PointSensor *sensor);
-		void SensorSetPivotPos(PointSensor *sensor, double x, double y, double z);
-		void SensorSetTargetPos(PointSensor *sensor, double x, double y, double z);
-		void UpdateRoadSensors(PointSensor *road_sensor, PointSensor *lane_sensor, roadmanager::Position *pos);
+		osg::ref_ptr<osg::Group> LoadEntityModel(const char* filename, osg::BoundingBox& bb);
+		void UpdateSensor(PointSensor* sensor);
+		void SensorSetPivotPos(PointSensor* sensor, double x, double y, double z);
+		void SensorSetTargetPos(PointSensor* sensor, double x, double y, double z);
+		void UpdateRoadSensors(PointSensor* road_sensor, PointSensor* lane_sensor, roadmanager::Position* pos);
 		void setKeyUp(bool pressed) { keyUp_ = pressed; }
 		void setKeyDown(bool pressed) { keyDown_ = pressed; }
 		void setKeyLeft(bool pressed) { keyLeft_ = pressed; }
@@ -414,30 +415,31 @@ namespace viewer
 		bool getKeyLeft() { return keyLeft_; }
 		bool getKeyRight() { return keyRight_; }
 		void SetQuitRequest(bool value) { quit_request_ = value; }
-		bool GetQuitRequest() { return quit_request_;  }
+		bool GetQuitRequest() { return quit_request_; }
 		void SetInfoTextProjection(int width, int height);
 		void SetInfoText(const char* text);
+		void SetInfoTextEnabled(bool state) { infoTextEnabled_ = state; }
 		void SetNodeMaskBits(int bits);
 		void SetNodeMaskBits(int mask, int bits);
 		void ClearNodeMaskBits(int bits);
 		void ToggleNodeMaskBits(int bits);
 		int GetNodeMaskBit(int mask);
 		PointSensor* CreateSensor(double color[], bool create_ball, bool create_line, double ball_radius, double line_width);
-		bool CreateRoadSensors(CarModel *vehicle_model);
+		bool CreateRoadSensors(CarModel* vehicle_model);
 		void SetWindowTitle(std::string title);
-		void SetWindowTitleFromArgs(std::vector<std::string> &arg);
+		void SetWindowTitleFromArgs(std::vector<std::string>& arg);
 		void SetWindowTitleFromArgs(int argc, char* argv[]);
 		void RegisterKeyEventCallback(KeyEventCallbackFunc func, void* data);
 		void RegisterImageCallback(ImageCallbackFunc func, void* data);
-		PolyLine* AddPolyLine(osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize=0);
-		PolyLine* AddPolyLine(osg::Group* parent, osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize=0);
+		PolyLine* AddPolyLine(osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize = 0);
+		PolyLine* AddPolyLine(osg::Group* parent, osg::ref_ptr<osg::Vec3Array> points, osg::Vec4 color, double width, double dotsize = 0);
 
 		void SaveImagesToFile(int nrOfFrames);
 		int GetSaveImagesToFile() { return saveImagesToFile_; }
 
 		void SaveImagesToRAM(bool state) { saveImagesToRAM_ = state; };
 		bool GetSaveImagesToRAM() { return saveImagesToRAM_; }
-
+		bool GetInfoTextEnabled() { return infoTextEnabled_; }
 		void Frame();
 
 	private:
@@ -454,6 +456,7 @@ namespace viewer
 		bool quit_request_;
 		bool saveImagesToRAM_;
 		int saveImagesToFile_;
+		bool infoTextEnabled_;
 		osg::ref_ptr<osgViewer::ScreenCaptureHandler> screenCaptureHandler_;
 		osgViewer::ViewerBase::ThreadingModel initialThreadingModel_;
 	};

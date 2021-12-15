@@ -225,23 +225,39 @@ extern "C"
 
 	/**
 		Initialize the scenario engine
+
 		@param oscFilename Path to the OpenSCENARIO file
 		@param disable_ctrls 1=Any controller will be disabled 0=Controllers applied according to OSC file
-		@param use_viewer 0=no viewer, 1=use viewer, 2=off-screen, 3=viewer+capture-to-file, 4=off-screen+capture-to-file
+		@param use_viewer Bitmask: 1=viewer on/off, 2=off-screen only, 4=capture-to-file, 8=disable info-text. Ex1: 0=>No viewer, ex2: 1+2=3=>Off-screen
 		@param threads 0=single thread, 1=viewer in a separate thread, parallel to scenario engine
 		@param record Create recording for later playback 0=no recording 1=recording
 		@return 0 if successful, -1 if not
+
+		\use_viewer bitmask examples:
+				0: No viewer instantiated. Improved performance, use when viewer not needed.
+				1: Viewer instantiated with a window on screen (default viewer usage)
+				3 (1+2): Off-screen rendering only (no window on screen)
+				7 (1+2+4): Off-screen + save screenshots to file
+			   11 (1+2+8): Off-screen + disable info-text for better remote/virtual desktop support
 	*/
 	SE_DLL_API int SE_Init(const char *oscFilename, int disable_ctrls, int use_viewer, int threads, int record);
 
 	/**
 		Initialize the scenario engine
+
 		@param oscAsXMLString OpenSCENARIO XML as string
 		@param disable_ctrls 1=Any controller will be disabled 0=Controllers applied according to OSC file
-		@param use_viewer 0=no viewer, 1=use viewer, 2=off-screen, 3=viewer+capture-to-file, 4=off-screen+capture-to-file
+		@param use_viewer Bitmask: 1=viewer on/off, 2=off-screen only, 4=capture-to-file, 8=disable info-text. Ex1: 0=>No viewer, ex2: 1+2=3=>Off-screen
 		@param threads 0=single thread, 1=viewer in a separate thread, parallel to scenario engine
 		@param record Create recording for later playback 0=no recording 1=recording
 		@return 0 if successful, -1 if not
+
+		\use_viewer bitmask examples:
+				0: No viewer instantiated. Improved performance, use when viewer not needed.
+				1: Viewer instantiated with a window on screen (default viewer usage)
+				3 (1+2): Off-screen rendering only (no window on screen)
+				7 (1+2+4): Off-screen + save screenshots to file
+			   11 (1+2+8): Off-screen + disable info-text for better remote/virtual desktop support
 	*/
 	SE_DLL_API int SE_InitWithString(const char *oscAsXMLString, int disable_ctrls, int use_viewer, int threads, int record);
 

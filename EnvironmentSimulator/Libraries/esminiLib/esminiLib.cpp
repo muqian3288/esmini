@@ -394,33 +394,35 @@ extern "C"
 
 	static int AddCommonArguments(int disable_ctrls, int use_viewer, int threads, int record)
 	{
-		if (use_viewer == 0)
+		if ((use_viewer & 1) == 0)
 		{
 			AddArgument("--headless");
 		}
-		if (use_viewer == 1)
+		else  // Viewer bit set, create a window for on and/or off-screen rendering
 		{
-			AddArgument("--window 60 60 800 400", true);
-		}
-		else if (use_viewer == 2)  // off_screen
-		{
-			AddArgument("--window 60 60 800 400", true);
-			AddArgument("--headless");
-		}
-		else if (use_viewer == 3)  // viewer+capture-to-file
-		{
-			AddArgument("--window 60 60 800 400", true);
-			AddArgument("--capture_screen");
-		}
-		else if (use_viewer == 3)  // off_screen+capture-to-file
-		{
-			AddArgument("--window 60 60 800 400", true);
-			AddArgument("--headless");
-			AddArgument("--capture_screen");
-		}
-		else   // no viewer at all
-		{
-			LOG("Unexpected value: %d for \"use_viewer\" parameter. Not within range (%d, %d)", use_viewer, 0, 3);
+			static char winArg[64];
+			snprintf(winArg, sizeof(winArg), "--window %d %d %d %d", winDim.x, winDim.y, winDim.w, winDim.h);
+			AddArgument(winArg, true);
+
+			if (use_viewer & 2)  // off_screen
+			{
+				AddArgument("--headless");
+			}
+
+			if (use_viewer & 4)  // capture-to-file
+			{
+				AddArgument("--capture_screen");
+			}
+
+			if (use_viewer & 8)  // disable info-text
+			{
+				AddArgument("--info_text disable");
+			}
+
+			if (use_viewer & ~(0xf))  // check for invalid bits 0xf == 1+2+4+8
+			{
+				LOG("Unexpected use_viewer value: %d. Valid range: (0, %d) / (0x0, 0x%x) (%d, %d)", use_viewer, 0, 0xf, 0xf);
+			}
 		}
 
 		if (threads)
@@ -1808,7 +1810,9 @@ extern "C"
 
 	SE_DLL_API void SE_RegisterImageCallback(void (*fnPtr)(SE_Image*, void*), void* user_data)
 	{
-		RegisterImageCallback((viewer::ImageCallbackFunc)fnPtr, user_data);
+#ifdef _USE_OSG
+		RegisterImageCallback((viewer::ImageCallbackFunc)fnPtr, user_data);  // ensure SE_Image and OffScrImage is compatible
+#endif
 	}
 
 	SE_DLL_API int SE_WritePPMImage(const char* filename, int width, int height, const unsigned char* data, int pixelSize, int pixelFormat, bool upsidedown)

@@ -1066,21 +1066,6 @@ void EntityModel::SetTransparency(double factor)
 	blend_color_->setConstantColor(osg::Vec4(1, 1, 1, 1-factor));
 }
 
-struct PreDrawCallback : public osg::Camera::DrawCallback
-{
-	PreDrawCallback(Viewer* viewer)
-	{
-		viewer_ = viewer;
-	}
-
-	virtual void operator() (osg::RenderInfo& renderInfo) const
-	{
-		viewer_->renderMutex.Lock();
-	}
-
-	viewer::Viewer* viewer_;
-};
-
 struct FetchImage : public osg::Camera::DrawCallback
 {
 	FetchImage(Viewer* viewer)
@@ -1102,6 +1087,8 @@ struct FetchImage : public osg::Camera::DrawCallback
 
 			if (viewport && image_.valid())
 			{
+				viewer_->imageMutex.Lock();
+
 				image_->readPixels(int(viewport->x()), int(viewport->y()), int(viewport->width()), int(viewport->height()),
 					GL_BGR,  // only GL_RGB and GL_BGR supported for now
 					GL_UNSIGNED_BYTE);
@@ -1139,9 +1126,12 @@ struct FetchImage : public osg::Camera::DrawCallback
 				{
 					viewer_->imgCallback_.func(&viewer_->capturedImage_, viewer_->imgCallback_.data);
 				}
+
+				viewer_->imageMutex.Unlock();
 			}
 		}
-		viewer_->renderMutex.Unlock();
+
+		viewer_->renderSemaphore.Release(); // Lower flag to indicate rendering done
 	}
 
 	mutable osg::ref_ptr<osg::Image> image_;
@@ -1187,6 +1177,7 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 	captureCounter_ = 0;
 	saveImagesToRAM_ = true;  // Default is to read back rendered image for possible fetch via API
 	saveImagesToFile_ = 0;
+	infoTextEnabled_ = true;
 	imgCallback_ = { nullptr, nullptr };
 
 	int aa_mode = DEFAULT_AA_MULTISAMPLES;
@@ -1519,35 +1510,37 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager, const char* modelFilename, co
 	osgViewer_->realize();
 
 	// Overlay text
-	osg::ref_ptr<osg::Geode> textGeode = new osg::Geode;
-	osg::Vec4 layoutColor(0.9f, 0.9f, 0.9f, 1.0f);
-	float layoutCharacterSize = 12.0f;
+	if (GetInfoTextEnabled())
+	{
+		osg::ref_ptr<osg::Geode> textGeode = new osg::Geode;
+		osg::Vec4 layoutColor(0.9f, 0.9f, 0.9f, 1.0f);
+		float layoutCharacterSize = 12.0f;
 
-	infoText = new osgText::Text;
-	infoText->setColor(layoutColor);
-	infoText->setCharacterSize(layoutCharacterSize);
-	infoText->setAxisAlignment(osgText::Text::SCREEN);
-	infoText->setPosition(osg::Vec3(10, 10, 0));
-	infoText->setDataVariance(osg::Object::DYNAMIC);
-	infoText->setNodeMask(NodeMask::NODE_MASK_INFO);
+		infoText = new osgText::Text;
+		infoText->setColor(layoutColor);
+		infoText->setCharacterSize(layoutCharacterSize);
+		infoText->setAxisAlignment(osgText::Text::SCREEN);
+		infoText->setPosition(osg::Vec3(10, 10, 0));
+		infoText->setDataVariance(osg::Object::DYNAMIC);
+		infoText->setNodeMask(NodeMask::NODE_MASK_INFO);
 
-	textGeode->addDrawable(infoText);
+		textGeode->addDrawable(infoText);
 
-	infoTextCamera = new osg::Camera;
-	infoTextCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	infoTextCamera->setClearMask(GL_DEPTH_BUFFER_BIT);
-	infoTextCamera->setRenderOrder(osg::Camera::POST_RENDER, 10);
-	infoTextCamera->setAllowEventFocus(false);
-	infoTextCamera->addChild(textGeode.get());
-	infoTextCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		infoTextCamera = new osg::Camera;
+		infoTextCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+		infoTextCamera->setClearMask(GL_DEPTH_BUFFER_BIT);
+		infoTextCamera->setRenderOrder(osg::Camera::POST_RENDER, 10);
+		infoTextCamera->setAllowEventFocus(false);
+		infoTextCamera->addChild(textGeode.get());
+		infoTextCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
-	osg::ref_ptr<osg::GraphicsContext::Traits> traits = const_cast<osg::GraphicsContext::Traits*>(osgViewer_->getCamera()->getGraphicsContext()->getTraits());
-	SetInfoTextProjection(traits->width, traits->height);
+		osg::ref_ptr<osg::GraphicsContext::Traits> traits = const_cast<osg::GraphicsContext::Traits*>(osgViewer_->getCamera()->getGraphicsContext()->getTraits());
+		SetInfoTextProjection(traits->width, traits->height);
 
-	rootnode_->addChild(infoTextCamera);
+		rootnode_->addChild(infoTextCamera);
+	}
 
 	// Register callback for fetch rendered image into RAM buffer
-	osgViewer_->getCamera()->setInitialDrawCallback(new PreDrawCallback(this));
 	osgViewer_->getCamera()->setFinalDrawCallback(new FetchImage(this));
 	initialThreadingModel_ = osgViewer_->getThreadingModel();
 }
@@ -2785,13 +2778,16 @@ int Viewer::AddEnvironment(const char* filename)
 
 void Viewer::SetInfoText(const char* text)
 {
-	if (GetNodeMaskBit(NodeMask::NODE_MASK_INFO))
+	if (GetInfoTextEnabled())
 	{
-		infoText->setText(text);
-	}
-	else
-	{
-		infoText->setText("");
+		if (GetNodeMaskBit(NodeMask::NODE_MASK_INFO))
+		{
+			infoText->setText(text);
+		}
+		else
+		{
+			infoText->setText("");
+		}
 	}
 }
 
@@ -2822,7 +2818,10 @@ int Viewer::GetNodeMaskBit(int mask)
 
 void Viewer::SetInfoTextProjection(int width, int height)
 {
-	infoTextCamera->setProjectionMatrix(osg::Matrix::ortho2D(0, width, 0, height));
+	if (GetInfoTextEnabled())
+	{
+		infoTextCamera->setProjectionMatrix(osg::Matrix::ortho2D(0, width, 0, height));
+	}
 }
 
 void Viewer::SetVehicleInFocus(int idx)
@@ -2925,6 +2924,7 @@ void Viewer::SaveImagesToFile(int nrOfFrames)
 
 void Viewer::Frame()
 {
+	renderSemaphore.Set();  // Raise semaphore to flag rendering ongoing
 	osgViewer_->frame();
 }
 
@@ -2933,7 +2933,10 @@ bool ViewerEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActi
 	switch (ea.getEventType())
 	{
 	case(osgGA::GUIEventAdapter::RESIZE):
-		viewer_->SetInfoTextProjection(ea.getWindowWidth(), ea.getWindowHeight());
+		if (viewer_->GetInfoTextEnabled())
+		{
+			viewer_->SetInfoTextProjection(ea.getWindowWidth(), ea.getWindowHeight());
+		}
 		break;
 	}
 

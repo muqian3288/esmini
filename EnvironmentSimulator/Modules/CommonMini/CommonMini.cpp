@@ -752,6 +752,8 @@ void Logger::Log(bool quit, bool trace, char const* file, char const* func, int 
 	static char complete_entry[2048];
 	static char message[1024];
 
+	mutex_.Lock();  // Protect from simultanous use from different threads
+
 	va_list args;
 	va_start(args, format);
 	vsnprintf(message, 1024, format, args);
@@ -795,6 +797,8 @@ void Logger::Log(bool quit, bool trace, char const* file, char const* func, int 
 	}
 
 	va_end(args);
+
+	mutex_.Unlock();
 
 	if (quit)
 	{

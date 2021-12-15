@@ -2326,11 +2326,10 @@ TEST(APITest, TestFetchImage)
 		oldModTime = fileStatus.st_mtime;
 	}
 
-	EXPECT_EQ(SE_Init(scenario_file.c_str(), 0, 2, 0, 0), 0);
+	EXPECT_EQ(SE_Init(scenario_file.c_str(), 0, 11, 0, 0), 0);  // viewer (1) + off-screen only (2) + disable info_text (8)
 	ASSERT_EQ(SE_GetNumberOfObjects(), 2);
-	SE_StepDT(0.1f);
 
-	SE_Image image;
+	SE_Image image = {0, 0, 0, 0, 0};
  	SE_FetchImage(&image);
 	ASSERT_NE(image.data, nullptr);
 
@@ -2340,9 +2339,9 @@ TEST(APITest, TestFetchImage)
 
 	// Check RGB color values of a random pixel x=222, y=250
 	int pixelNr = ((400-1) - 250) * 800 + 222;  // image stored upside down
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 71);  // R
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 90);  // G
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 44);  // B
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 66);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 89);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 39);  // B
 
 	// Save file for possible post processing or inspection
 	SE_WriteTGA("offscreen0.tga", image.width, image.height, image.data, image.pixelSize, image.pixelFormat, true);
@@ -2359,22 +2358,22 @@ TEST(APITest, TestFetchImage)
 	EXPECT_EQ(image.pixelSize, 3);
 
 	// Check pixel
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 67);  // R
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 82);  // G
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 39);  // B
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 71);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 90);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 44);  // B
 
 	SE_StepDT(0.1f);  // And another one
 
 	SE_FetchImage(&image);
-
+	SE_WritePPM("offscreen2.ppm", image.width, image.height, image.data, image.pixelSize, image.pixelFormat, true);
 	EXPECT_EQ(image.width, 800);
 	EXPECT_EQ(image.height, 400);
 	EXPECT_EQ(image.pixelSize, 3);
 
 	// Check pixel
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 44);  // R
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 85);  // G
-	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 68);  // B
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 2], 67);  // R
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 1], 82);  // G
+	EXPECT_EQ(image.data[pixelNr * image.pixelSize + 0], 39);  // B
 
 	// Verify that we can't fetch images when feature disabled
 	EXPECT_EQ(SE_SaveImagesToRAM(false), 0);

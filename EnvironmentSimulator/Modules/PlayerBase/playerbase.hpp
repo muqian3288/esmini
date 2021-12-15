@@ -30,7 +30,6 @@ using namespace scenarioengine;
 
 #ifdef _USE_OSG
 void ReportKeyEvent(viewer::KeyEvent *keyEvent, void *data);
-#endif
 
 static struct
 {
@@ -38,8 +37,9 @@ static struct
 	void* data;
 } imageCallback = { 0, 0 };
 
-
 void RegisterImageCallback(viewer::ImageCallbackFunc func, void* data);
+
+#endif
 
 class ScenarioPlayer
 {
@@ -72,6 +72,7 @@ public:
 
 	ScenarioPlayer(int& argc, char* argv[]);
 	~ScenarioPlayer();
+	void PrintUsage();
 	bool IsQuitRequested() { return quit_request; }
 	void SetOSIFileStatus(bool is_on, const char *filename = 0);
 	void Frame(); // let player calculate actual time step
@@ -130,9 +131,6 @@ public:
 
 	OffScreenImage *FetchCapturedImagePtr();
 	void AddCustomCamera(double x, double y, double z, double h, double p);
-
-	void PrintUsage();
-
 #else
 	void *viewer_;
 #endif

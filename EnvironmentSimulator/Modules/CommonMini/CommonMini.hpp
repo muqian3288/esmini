@@ -351,6 +351,45 @@ private:
 #endif
 };
 
+
+// Semaphore implementation based on this "thread":
+// https://stackoverflow.com/questions/4792449/c0x-has-no-semaphores-how-to-synchronize-threads/4793662#4793662
+// But adapted for use cases where a thread should wait until a series, not necessarily overlapping, tasks from
+// potentially various threads has been finished, e.g:
+// 1. Raise flag from main thread when main application thread initiates rendering of scenario image
+// 2. Lower flag from render thread when image has been created and copied into RAM
+// 3. Meanwhile, main thread waits for the flag to fall and then can fetch the image
+//
+class SE_Semaphore
+{
+public:
+	SE_Semaphore() : flag(0) {}
+
+	inline void Set()
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		flag = true;
+	}
+
+	inline void Release()
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		flag = false;
+		cv.notify_one();  // notify the waiting thread
+	}
+
+	inline void Wait()
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		cv.wait(lock);  // wait on the mutex until notify is called
+	}
+
+private:
+	std::mutex mtx;
+	std::condition_variable cv;
+	bool flag;
+};
+
 std::vector<std::string> SplitString(const std::string &s, char separator);
 std::string DirNameOf(const std::string& fname);
 std::string FileNameOf(const std::string& fname);
@@ -379,6 +418,7 @@ private:
 	Logger();
 	~Logger();
 
+	SE_Mutex mutex_;
 	FuncPtr callback_;
 	std::ofstream file_;
 	double* time_; // seconds

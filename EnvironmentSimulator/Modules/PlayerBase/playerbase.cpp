@@ -31,11 +31,13 @@ using namespace scenarioengine;
 
 static int osi_counter = 0;
 
+#ifdef _USE_OSG
 void RegisterImageCallback(viewer::ImageCallbackFunc func, void* data)
 {
 	imageCallback.func = func;
 	imageCallback.data = data;
 }
+#endif
 
 static void log_callback(const char *str)
 {
@@ -380,9 +382,9 @@ int ScenarioPlayer::SaveImagesToRAM(bool state)
 {
 	if (viewer_)
 	{
-		viewer_->renderMutex.Lock();
+		viewer_->imageMutex.Lock();
 		viewer_->SaveImagesToRAM(state);
-		viewer_->renderMutex.Unlock();
+		viewer_->imageMutex.Unlock();
 		return 0;
 	}
 
@@ -393,9 +395,9 @@ int ScenarioPlayer::SaveImagesToFile(int nrOfFrames)
 {
 	if (viewer_)
 	{
-		viewer_->renderMutex.Lock();
+		viewer_->imageMutex.Lock();
 		viewer_->SaveImagesToFile(nrOfFrames);
-		viewer_->renderMutex.Unlock();
+		viewer_->imageMutex.Unlock();
 		return 0;
 	}
 
@@ -413,7 +415,9 @@ OffScreenImage* ScenarioPlayer::FetchCapturedImagePtr()
 			LOG("FetchCapturedImagePtr Error: Activate save images to RAM (SaveImagesToRAM(true)) in order to fetch images\n");
 			return nullptr;
 		}
-		viewer_->renderMutex.Lock();
+		viewer_->renderSemaphore.Wait();  // Wait until rendering is done
+
+		viewer_->imageMutex.Lock();
 
 		OffScreenImage* tmpImg = &viewer_->capturedImage_;
 
@@ -441,7 +445,7 @@ OffScreenImage* ScenarioPlayer::FetchCapturedImagePtr()
 			}
 		}
 
-		viewer_->renderMutex.Unlock();
+		viewer_->imageMutex.Unlock();
 
 		return &img;
 	}
@@ -486,6 +490,10 @@ int ScenarioPlayer::InitViewer()
 	if (opt.GetOptionArg("info_text") == "off")
 	{
 		viewer_->ClearNodeMaskBits(viewer::NodeMask::NODE_MASK_INFO);
+	}
+	else if (opt.GetOptionArg("info_text") == "disable")
+	{
+		viewer_->SetInfoTextEnabled(false);
 	}
 
 	viewer_->RegisterImageCallback(imageCallback.func, imageCallback.data);
@@ -817,7 +825,7 @@ int ScenarioPlayer::Init()
 	opt.AddOption("headless", "Run without viewer window");
 	opt.AddOption("help", "Show this help message");
 	opt.AddOption("hide_trajectories", "Hide trajectories from start (toggle with key 'n')");
-	opt.AddOption("info_text", "Show info text HUD (\"on\" (default), \"off\") (toggle during simulation by press 'i') ", "mode");
+	opt.AddOption("info_text", "Show info text HUD (\"on\" (default), \"off\", \"disable\") (if not disabled, toggle during simulation by press 'i') ", "mode");
 	opt.AddOption("logfile_path", "logfile path/filename, e.g. \"../esmini.log\" (default: log.txt)", "path");
 	opt.AddOption("osc_str", "OpenSCENARIO XML string", "string");
 #ifdef _USE_OSI
