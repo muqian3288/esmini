@@ -116,6 +116,8 @@ for:
             cd build/EnvironmentSimulator/Unittest
             $env:path += "../../../bin"
 
+            $env:LIBGL_ALWAYS_SOFTWARE = 1 
+
             ./OperatingSystem_test
             if ($lastExitCode -ne 0) {
                 throw "OperatingSystem_test failed"
@@ -135,6 +137,8 @@ for:
             if ($lastExitCode -ne 0) {
                 throw "ScenarioEngineDll_test failed"
             }
+
+            dir *.tga *.ppm
 
             cd ../../../test
 
