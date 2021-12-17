@@ -19,6 +19,7 @@
 #include <string>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <condition_variable>
 
 #ifdef _WIN32
 	#include <sdkddkver.h>

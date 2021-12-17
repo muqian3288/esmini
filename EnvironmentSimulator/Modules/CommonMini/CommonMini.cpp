@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <random>
+#include <algorithm>
 
 // UDP network includes
 #ifdef _WIN32
