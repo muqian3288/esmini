@@ -433,11 +433,14 @@ ENDFOREACH()
 
 function (download_and_extract url target_folder target_filename)
     message (STATUS "downloading ${target_filename} ...")
-    file (DOWNLOAD ${url} ${target_folder}/${target_filename})
+    message (STATUS "url ${url} ...")
+    message (STATUS "target_folder ${target_folder} ...")
+    message (STATUS "target_filename ${target_filename} ...")
+    # file (DOWNLOAD ${url} ${target_folder}/${target_filename})
 
     message (STATUS "extracting ${target_filename} ... ")
     execute_process (COMMAND ${CMAKE_COMMAND} -E tar xfz ${target_filename} WORKING_DIRECTORY ${target_folder})
-    file (REMOVE ${target_folder}/${target_filename})
+    # file (REMOVE ${target_folder}/${target_filename})
 endfunction (download_and_extract)
 
 # download OpenSceneGraph
