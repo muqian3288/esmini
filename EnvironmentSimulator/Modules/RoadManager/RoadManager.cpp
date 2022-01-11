@@ -1297,15 +1297,15 @@ double Road::GetSpeedByS(double s)
 	return 0;
 }
 
-Geometry* Road::GetGeometry(int idx)
-{
-	if (idx < 0 || idx + 1 > (int)geometry_.size())
-	{
-		LOG("Road::GetGeometry index %d out of range [0:%d]\n", idx, (int)geometry_.size());
-		return 0;
-	}
-	return geometry_[idx];
-}
+// Geometry* Road::GetGeometry(int idx)
+// {
+// 	if (idx < 0 || idx + 1 > (int)geometry_.size())
+// 	{
+// 		LOG("Road::GetGeometry index %d out of range [0:%d]\n", idx, (int)geometry_.size());
+// 		return 0;
+// 	}
+// 	return geometry_[idx];
+// }
 
 void LaneSection::Print()
 {
@@ -1803,10 +1803,10 @@ void RoadLink::Print()
 
 Road::~Road()
 {
-	for (size_t i=0; i<geometry_.size(); i++)
-	{
-		delete(geometry_[i]);
-	}
+	// for (size_t i=0; i<geometry_.size(); i++)
+	// {
+	// 	delete(geometry_[i]);
+	// }
 	for (size_t i=0; i<elevation_profile_.size(); i++)
 	{
 		delete(elevation_profile_[i]);
@@ -1824,53 +1824,53 @@ Road::~Road()
 void Road::Print()
 {
 	LOG("Road id: %d length: %.2f\n", id_, GetLength());
-	cout << "Geometries:" << endl;
+	// cout << "Geometries:" << endl;
 
-	for (size_t i = 0; i < geometry_.size(); i++)
-	{
-		cout << "Geometry type: " << geometry_[i]->GetType() << endl;
-	}
+	// for (size_t i = 0; i < geometry_.size(); i++)
+	// {
+	// 	cout << "Geometry type: " << geometry_[i]->GetType() << endl;
+	// }
 
-	for (size_t i=0; i<link_.size(); i++)
-	{
-		link_[i]->Print();
-	}
+	// for (size_t i=0; i<link_.size(); i++)
+	// {
+	// 	link_[i]->Print();
+	// }
 
-	for (size_t i=0; i<lane_section_.size(); i++)
-	{
-		lane_section_[i]->Print();
-	}
+	// for (size_t i=0; i<lane_section_.size(); i++)
+	// {
+	// 	lane_section_[i]->Print();
+	// }
 
-	for (size_t i=0; i<lane_offset_.size(); i++)
-	{
-		lane_offset_[i]->Print();
-	}
+	// for (size_t i=0; i<lane_offset_.size(); i++)
+	// {
+	// 	lane_offset_[i]->Print();
+	// }
 }
 
-void Road::AddLine(Line *line)
-{
-	geometry_.push_back((Geometry*)line);
-}
+// void Road::AddLine(Line *line)
+// {
+// 	geometry_.push_back((Geometry*)line);
+// }
 
-void Road::AddArc(Arc *arc)
-{
-	geometry_.push_back((Geometry*)arc);
-}
+// void Road::AddArc(Arc *arc)
+// {
+// 	geometry_.push_back((Geometry*)arc);
+// }
 
-void Road::AddSpiral(Spiral *spiral)
-{
-	geometry_.push_back((Geometry*)spiral);
-}
+// void Road::AddSpiral(Spiral *spiral)
+// {
+// 	geometry_.push_back((Geometry*)spiral);
+// }
 
-void Road::AddPoly3(Poly3 *poly3)
-{
-	geometry_.push_back((Geometry*)poly3);
-}
+// void Road::AddPoly3(Poly3 *poly3)
+// {
+// 	geometry_.push_back((Geometry*)poly3);
+// }
 
-void Road::AddParamPoly3(ParamPoly3 *param_poly3)
-{
-	geometry_.push_back((Geometry*)param_poly3);
-}
+// void Road::AddParamPoly3(ParamPoly3 *param_poly3)
+// {
+// 	geometry_.push_back((Geometry*)param_poly3);
+// }
 
 void Road::AddElevation(Elevation *elevation)
 {
@@ -2687,18 +2687,18 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 					// Find out the type of geometry
 					if (!strcmp(type.name(), "line"))
 					{
-						r->AddLine(new Line(s, x, y, hdg, glength));
+						// r->AddLine(new Line(s, x, y, hdg, glength));
 					}
 					else if (!strcmp(type.name(), "arc"))
 					{
 						double curvature = atof(type.attribute("curvature").value());
-						r->AddArc(new Arc(s, x, y, hdg, glength, curvature));
+						// r->AddArc(new Arc(s, x, y, hdg, glength, curvature));
 					}
 					else if (!strcmp(type.name(), "spiral"))
 					{
 						double curv_start = atof(type.attribute("curvStart").value());
 						double curv_end = atof(type.attribute("curvEnd").value());
-						r->AddSpiral(new Spiral(s, x, y, hdg, glength, curv_start, curv_end));
+						// r->AddSpiral(new Spiral(s, x, y, hdg, glength, curv_start, curv_end));
 					}
 					else if (!strcmp(type.name(), "poly3"))
 					{
@@ -2706,7 +2706,7 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 						double b = atof(type.attribute("b").value());
 						double c = atof(type.attribute("c").value());
 						double d = atof(type.attribute("d").value());
-						r->AddPoly3(new Poly3(s, x, y, hdg, glength, a, b, c, d));
+						// r->AddPoly3(new Poly3(s, x, y, hdg, glength, a, b, c, d));
 					}
 					else if (!strcmp(type.name(), "paramPoly3"))
 					{
@@ -2729,7 +2729,7 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 						ParamPoly3 *pp3 = new ParamPoly3(s, x, y, hdg, glength, aU, bU, cU, dU, aV, bV, cV, dV, p_range);
 						if (pp3 != NULL)
 						{
-							r->AddParamPoly3(pp3);
+							// r->AddParamPoly3(pp3);
 						}
 						else
 						{
@@ -5769,12 +5769,12 @@ void Position::Track2Lane()
 		return;
 	}
 
-	Geometry *geometry = road->GetGeometry(geometry_idx_);
-	if (geometry == 0)
-	{
-		LOG("Position::Track2Lane Error: No geometry %d\n", geometry_idx_);
-		return;
-	}
+	// Geometry *geometry = road->GetGeometry(geometry_idx_);
+	// if (geometry == 0)
+	// {
+	// 	LOG("Position::Track2Lane Error: No geometry %d\n", geometry_idx_);
+	// 	return;
+	// }
 
 	// Find LaneSection according to s, starting from current
 	int lane_section_idx = road->GetLaneSectionIdxByS(s_, lane_section_idx_);
@@ -5903,11 +5903,11 @@ Position::ErrorCode Position::XYZH2TrackPos(double x3, double y3, double z3, dou
 
 		// Check whether complete road is too far away - then skip to next
 		const double potentialWidthOfRoad = 25;
-		if (PointDistance2D(x3, y3, road->GetGeometry(0)->GetX(), road->GetGeometry(0)->GetY()) -
-			(road->GetLength() + potentialWidthOfRoad) > closestPointDist)  // add potential width of the road
-		{
-			continue;
-		}
+		// if (PointDistance2D(x3, y3, road->GetGeometry(0)->GetX(), road->GetGeometry(0)->GetY()) -
+		// 	(road->GetLength() + potentialWidthOfRoad) > closestPointDist)  // add potential width of the road
+		// {
+		// 	continue;
+		// }
 
 		weight = 0;
 		angle = 0;
@@ -6484,14 +6484,14 @@ Position::ErrorCode Position::Track2XYZ()
 		return ErrorCode::ERROR_GENERIC;
 	}
 
-	Geometry *geometry = road->GetGeometry(geometry_idx_);
-	if (geometry == 0)
-	{
-		LOG("Position::Track2XYZ Error: No geometry %d\n", geometry_idx_);
-		return ErrorCode::ERROR_GENERIC;
-	}
+	// Geometry *geometry = road->GetGeometry(geometry_idx_);
+	// if (geometry == 0)
+	// {
+	// 	LOG("Position::Track2XYZ Error: No geometry %d\n", geometry_idx_);
+	// 	return ErrorCode::ERROR_GENERIC;
+	// }
 
-	geometry->EvaluateDS(s_ - geometry->GetS(), &x_, &y_, &h_road_);
+	// geometry->EvaluateDS(s_ - geometry->GetS(), &x_, &y_, &h_road_);
 
 	// Consider lateral t position, perpendicular to track heading
 	double x_local = (t_ + road->GetLaneOffset(s_)) * cos(h_road_ + M_PI_2);
@@ -6611,24 +6611,24 @@ Position::ErrorCode Position::SetLongitudinalTrackPos(int track_id, double s)
 	}
 
 
-	Geometry *geometry = road->GetGeometry(geometry_idx_);
-	// check if still on same geometry
-	if (s > geometry->GetS() + geometry->GetLength())
-	{
-		while (s > geometry->GetS() + geometry->GetLength() && geometry_idx_ < road->GetNumberOfGeometries() - 1)
-		{
-			// Move to next geometry
-			geometry = road->GetGeometry(++geometry_idx_);
-		}
-	}
-	else if (s < geometry->GetS())
-	{
-		while (s < geometry->GetS() && geometry_idx_ > 0)
-		{
-			// Move to previous geometry
-			geometry = road->GetGeometry(--geometry_idx_);
-		}
-	}
+	// Geometry *geometry = road->GetGeometry(geometry_idx_);
+	// // check if still on same geometry
+	// if (s > geometry->GetS() + geometry->GetLength())
+	// {
+	// 	while (s > geometry->GetS() + geometry->GetLength() && geometry_idx_ < road->GetNumberOfGeometries() - 1)
+	// 	{
+	// 		// Move to next geometry
+	// 		geometry = road->GetGeometry(++geometry_idx_);
+	// 	}
+	// }
+	// else if (s < geometry->GetS())
+	// {
+	// 	while (s < geometry->GetS() && geometry_idx_ > 0)
+	// 	{
+	// 		// Move to previous geometry
+	// 		geometry = road->GetGeometry(--geometry_idx_);
+	// 	}
+	// }
 
 
 	if (s > road->GetLength())
