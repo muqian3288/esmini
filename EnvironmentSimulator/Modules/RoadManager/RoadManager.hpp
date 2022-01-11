@@ -1527,7 +1527,7 @@ namespace roadmanager
 		Road* GetRoadByIdx(int idx);
 		// Geometry* GetGeometryByIdx(int road_idx, int geom_idx);
 		int GetTrackIdxById(int id);
-		int GetTrackIdByIdx(int idx);
+//		int GetTrackIdByIdx(int idx);
 		int GetNumOfRoads() { return (int)road_.size(); }
 		Junction* GetJunctionById(int id);
 		Junction* GetJunctionByIdx(int idx);
@@ -1555,9 +1555,8 @@ namespace roadmanager
 //		int CheckConnectedRoad(Road *road, RoadLink *link, ContactPointType expected_contact_point_type, RoadLink *link2);
 //		int CheckJunctionConnection(Junction *junction, Connection *connection);
 		std::string ContactPointType2Str(ContactPointType type);
-		std::string ElementType2Str(RoadLink::ElementType type);
 
-		int GetNumberOfControllers() { return (int)controller_.size(); }
+        int GetNumberOfControllers() { return (int)controller_.size(); }
 		Controller* GetControllerByIdx(int index);
 		Controller* GetControllerById(int id);
 		void AddController(Controller controller) { controller_.push_back(controller); }
@@ -1787,17 +1786,10 @@ namespace roadmanager
 
 		void SetTrajectory(RMTrajectory* trajectory);
 
-		/**
-		Set the current position along the route.
-		@param position A regular position created with road, lane or world coordinates
-		@return Non zero return value indicates error of some kind
-		*/
-		int SetRoutePosition(Position *position);
-
-		/**
-		Retrieve the S-value of the current route position. Note: This is the S along the
-		complete route, not the actual individual roads.
-		*/
+        /**
+        Retrieve the S-value of the current route position. Note: This is the S along the
+        complete route, not the actual individual roads.
+        */
 		double GetRouteS() { return s_route_; }
 
 		/**
@@ -1843,16 +1835,9 @@ namespace roadmanager
 		*/
 		double GetTrajectoryS() { return s_trajectory_; }
 
-		/**
-		Move current position to specified T-value along the trajectory
-		@param trajectory_t Lateral distance from trajectory at current s-value
-		@return Non zero return value indicates error of some kind
-		*/
-		int SetTrajectoryT(double trajectory_t) { t_trajectory_ = trajectory_t; }
-
-		/**
-		Retrieve the T-value of the current trajectory position
-		*/
+        /**
+        Retrieve the T-value of the current trajectory position
+        */
 		double GetTrajectoryT() { return t_trajectory_; }
 
 		/**
@@ -1891,21 +1876,13 @@ namespace roadmanager
 		*/
 		int Distance(double x, double y, CoordinateSystem cs, RelativeDistanceType relDistType, double& dist, double maxDist = LARGE_NUMBER);
 
-		/**
-		Is the current position ahead of the one specified in argument
-		This method is more efficient than getRelativeDistance
-		@param target_position The position to compare the current to.
-		@return true of false
-		*/
-		bool IsAheadOf(Position target_position);
-
-		/**
-		Get information suitable for driver modeling of a point at a specified distance from object along the road ahead
-		@param lookahead_distance The distance, along the road, to the point
-		@param data Struct to fill in calculated values, see typdef for details
-		@param lookAheadMode Measurement strategy: Along reference lane, lane center or current lane offset. See roadmanager::Position::LookAheadMode enum
-		@return 0 if successful, other codes see Position::ErrorCode
-		*/
+        /**
+        Get information suitable for driver modeling of a point at a specified distance from object along the road ahead
+        @param lookahead_distance The distance, along the road, to the point
+        @param data Struct to fill in calculated values, see typdef for details
+        @param lookAheadMode Measurement strategy: Along reference lane, lane center or current lane offset. See roadmanager::Position::LookAheadMode enum
+        @return 0 if successful, other codes see Position::ErrorCode
+        */
 		ErrorCode GetProbeInfo(double lookahead_distance, RoadProbeInfo *data, LookAheadMode lookAheadMode);
 
 		/**

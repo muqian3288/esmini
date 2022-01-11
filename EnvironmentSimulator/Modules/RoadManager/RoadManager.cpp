@@ -4175,15 +4175,15 @@ int OpenDrive::GetTrackIdxById(int id)
 	return -1;
 }
 
-int OpenDrive::GetTrackIdByIdx(int idx)
-{
-	if (idx >= 0 && idx < (int)road_.size())
-	{
-		return (road_[idx]->GetId());
-	}
-	LOG("OpenDrive::GetTrackIdByIdx: idx %d out of range [0:%d]\n", idx, (int)road_.size());
-	return 0;
-}
+//int OpenDrive::GetTrackIdByIdx(int idx)
+//{
+//	if (idx >= 0 && idx < (int)road_.size())
+//	{
+//		return (road_[idx]->GetId());
+//	}
+//	LOG("OpenDrive::GetTrackIdByIdx: idx %d out of range [0:%d]\n", idx, (int)road_.size());
+//	return 0;
+//}
 
 int OpenDrive::IsDirectlyConnected(int road1_id, int road2_id, double& angle)
 {
@@ -6717,26 +6717,6 @@ std::string OpenDrive::ContactPointType2Str(ContactPointType type)
 	}
 }
 
-std::string OpenDrive::ElementType2Str(RoadLink::ElementType type)
-{
-	if (type == RoadLink::ElementType::ELEMENT_TYPE_JUNCTION)
-	{
-		return "JUNCTION";
-	}
-	else if (type == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
-	{
-		return "ROAD";
-	}
-	else if (type == RoadLink::ElementType::ELEMENT_TYPE_UNKNOWN)
-	{
-		return "UNKNOWN";
-	}
-	else
-	{
-		return "UNDEFINED";
-	}
-}
-
 int Position::MoveToConnectingRoad(RoadLink *road_link, ContactPointType &contact_point_type, double junctionSelectorAngle)
 {
 	Road *road = GetOpenDrive()->GetRoadByIdx(track_idx_);
@@ -8038,23 +8018,6 @@ int Position::Distance(double x, double y, CoordinateSystem cs, RelativeDistance
 	return 0;
 }
 
-bool Position::IsAheadOf(Position target_position)
-{
-	// Calculate diff vector from current to target
-	double diff_x, diff_y;
-	double diff_x0;
-
-	diff_x = target_position.GetX() - GetX();
-	diff_y = target_position.GetY() - GetY();
-
-	// Compensate for current heading (rotate so that current heading = 0)
-	// Only x component needed
-	diff_x0 = diff_x * cos(-GetH()) - diff_y * sin(-GetH());
-
-	// Now just check whether diff vector X-component is less than 0 (behind current)
-	return(diff_x0 < 0);
-}
-
 //查询当前位置的RoadLaneInfo
 int Position::GetRoadLaneInfo(RoadLaneInfo *data)
 {
@@ -8650,29 +8613,6 @@ double Position::GetRRelative()
 	}
 
 	return r_relative_;
-}
-
-int Position::SetRoutePosition(Position *position)
-{
-	if(!route_)
-	{
-		return -1;
-	}
-
-	// Is it a valid position, i.e. is it along the route
-	for (size_t i=0; i<route_->minimal_waypoints_.size(); i++)
-	{
-		if (route_->minimal_waypoints_[i].GetTrackId() == position->GetTrackId()) // Same road
-		{
-			// Update current position
-			Route *tmp = route_;  // save route pointer, copy the
-			*this = *position;
-			route_ = tmp;
-			return 0;
-		}
-	}
-
-	return -1;
 }
 
 Position::ErrorCode Position::MoveRouteDS(double ds, bool actualDistance)
