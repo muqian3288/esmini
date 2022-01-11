@@ -207,50 +207,50 @@ void SwarmTrafficAction::createRoadSegments(BBoxVec &vec)
     {
         roadmanager::Road* road = odrManager_->GetRoadByIdx(i);
 
-        for (int j = 0; j < road->GetNumberOfGeometries(); j++)
-        {
-            roadmanager::Geometry *gm = road->GetGeometry(j);
-
-            switch (gm->GetType())
-            {
-                case roadmanager::Geometry::GeometryType::GEOMETRY_TYPE_UNKNOWN:
-                {
-                    break;
-                }
-                case roadmanager::Geometry::GeometryType::GEOMETRY_TYPE_LINE:
-                {
-                    auto const length = gm->GetLength();
-                    for (double dist = gm->GetS(); dist < length;)
-                    {
-                        double ds = dist + minSize_;
-                        if (ds > length)
-                            ds = length;
-                        double x0, y0, x1, y1, x2, y2, dummy, l;
-                        gm->EvaluateDS(dist, &x0, &y0, &dummy);
-                        gm->EvaluateDS(ds, &x1, &y1, &dummy);
-                        l = sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2));
-                        x2 = (x1 + x0)/2 + l / 4.0;
-                        y2 = (y1 + y0)/2 + l / 4.0;
-                        Point a(x0, y0), b(x1, y1), c(x2, y2);
-                        ptTriangle triangle = make_shared<Triangle>(gm);
-                        triangle->a = a;
-                        triangle->b = b;
-                        triangle->c = c;
-                        triangle->sI = dist;
-                        triangle->sF = ds;
-                        ptBBox bbox = make_shared<BBox>(triangle);
-                        vec.push_back(bbox);
-                        dist = ds;
-                    }
-                    break;
-                }
-                default:
-                {
-                    curve2triangles(gm, minSize_, M_PI/36, vec);
-                    break;
-                }
-            }
-        }
+//        for (int j = 0; j < road->GetNumberOfGeometries(); j++)
+//        {
+//            roadmanager::Geometry *gm = road->GetGeometry(j);
+//
+//            switch (gm->GetType())
+//            {
+//                case roadmanager::Geometry::GeometryType::GEOMETRY_TYPE_UNKNOWN:
+//                {
+//                    break;
+//                }
+//                case roadmanager::Geometry::GeometryType::GEOMETRY_TYPE_LINE:
+//                {
+//                    auto const length = gm->GetLength();
+//                    for (double dist = gm->GetS(); dist < length;)
+//                    {
+//                        double ds = dist + minSize_;
+//                        if (ds > length)
+//                            ds = length;
+//                        double x0, y0, x1, y1, x2, y2, dummy, l;
+//                        gm->EvaluateDS(dist, &x0, &y0, &dummy);
+//                        gm->EvaluateDS(ds, &x1, &y1, &dummy);
+//                        l = sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2));
+//                        x2 = (x1 + x0)/2 + l / 4.0;
+//                        y2 = (y1 + y0)/2 + l / 4.0;
+//                        Point a(x0, y0), b(x1, y1), c(x2, y2);
+//                        ptTriangle triangle = make_shared<Triangle>(gm);
+//                        triangle->a = a;
+//                        triangle->b = b;
+//                        triangle->c = c;
+//                        triangle->sI = dist;
+//                        triangle->sF = ds;
+//                        ptBBox bbox = make_shared<BBox>(triangle);
+//                        vec.push_back(bbox);
+//                        dist = ds;
+//                    }
+//                    break;
+//                }
+//                default:
+//                {
+//                    curve2triangles(gm, minSize_, M_PI/36, vec);
+//                    break;
+//                }
+//            }
+//        }
     }
 }
 

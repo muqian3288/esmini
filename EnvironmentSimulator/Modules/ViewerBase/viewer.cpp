@@ -2113,30 +2113,30 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
 		osg::ref_ptr<osg::Point> kp_point = new osg::Point();
 
 		roadmanager::Geometry *geom = nullptr;
-		for (int i = 0; i < road->GetNumberOfGeometries()+1; i++)
-		{
-			if (i < road->GetNumberOfGeometries())
-			{
-				geom = road->GetGeometry(i);
-				pos->SetTrackPos(road->GetId(), geom->GetS(), 0);
-			}
-			else
-			{
-				pos->SetTrackPos(road->GetId(), geom->GetS()+geom->GetLength(), 0);
-			}
-
-			point.set(pos->GetX(), pos->GetY(), pos->GetZ() + z_offset);
-			kp_points->push_back(point);
-
-			if (i == 0)
-			{
-				kp_color->push_back(osg::Vec4(color_yellow[0], color_yellow[1], color_yellow[2], 1.0));
-			}
-			else
-			{
-				kp_color->push_back(osg::Vec4(color_red[0], color_red[1], color_red[2], 1.0));
-			}
-		}
+//		for (int i = 0; i < road->GetNumberOfGeometries()+1; i++)
+//		{
+//			if (i < road->GetNumberOfGeometries())
+//			{
+//				geom = road->GetGeometry(i);
+//				pos->SetTrackPos(road->GetId(), geom->GetS(), 0);
+//			}
+//			else
+//			{
+//				pos->SetTrackPos(road->GetId(), geom->GetS()+geom->GetLength(), 0);
+//			}
+//
+//			point.set(pos->GetX(), pos->GetY(), pos->GetZ() + z_offset);
+//			kp_points->push_back(point);
+//
+//			if (i == 0)
+//			{
+//				kp_color->push_back(osg::Vec4(color_yellow[0], color_yellow[1], color_yellow[2], 1.0));
+//			}
+//			else
+//			{
+//				kp_color->push_back(osg::Vec4(color_red[0], color_red[1], color_red[2], 1.0));
+//			}
+//		}
 
 		kp_point->setSize(12.0f);
 		kp_geom->setVertexArray(kp_points.get());
