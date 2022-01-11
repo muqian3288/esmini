@@ -3606,7 +3606,7 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 		junction_.push_back(j);
 	}
 
-	CheckConnections();
+	// CheckConnections();
 
 	if (!SetRoadOSI())
 	{
@@ -4640,26 +4640,26 @@ int OpenDrive::CheckJunctionConnection(Junction *junction, Connection *connectio
 //	return 0;
 //}
 
-int OpenDrive::CheckConnections()
-{
-	int counter = 0;
-	RoadLink *link;
+// int OpenDrive::CheckConnections()
+// {
+// 	int counter = 0;
+// 	RoadLink *link;
 
-	for (size_t i = 0; i < road_.size(); i++)
-	{
-		// Check for connections
-		if ((link = road_[i]->GetLink(LinkType::PREDECESSOR)) != 0)
-		{
-			CheckLink(road_[i], link, ContactPointType::CONTACT_POINT_START);
-		}
-		if ((link = road_[i]->GetLink(LinkType::SUCCESSOR)) != 0)
-		{
-			CheckLink(road_[i], link, ContactPointType::CONTACT_POINT_END);
-		}
-	}
+// 	for (size_t i = 0; i < road_.size(); i++)
+// 	{
+// 		// Check for connections
+// 		if ((link = road_[i]->GetLink(LinkType::PREDECESSOR)) != 0)
+// 		{
+// 			CheckLink(road_[i], link, ContactPointType::CONTACT_POINT_START);
+// 		}
+// 		if ((link = road_[i]->GetLink(LinkType::SUCCESSOR)) != 0)
+// 		{
+// 			CheckLink(road_[i], link, ContactPointType::CONTACT_POINT_END);
+// 		}
+// 	}
 
-	return counter;
-}
+// 	return counter;
+// }
 
 void OpenDrive::Print()
 {

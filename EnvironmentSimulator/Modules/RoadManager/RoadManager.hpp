@@ -1550,8 +1550,8 @@ namespace roadmanager
 			@param idx index into the vector of roads
 			@return number of added connections
 		*/
-		int CheckConnections();
-		int CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type);
+		// int CheckConnections();
+		// int CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type);
 //		int CheckConnectedRoad(Road *road, RoadLink *link, ContactPointType expected_contact_point_type, RoadLink *link2);
 		int CheckJunctionConnection(Junction *junction, Connection *connection);
 		std::string ContactPointType2Str(ContactPointType type);
