@@ -1542,7 +1542,7 @@ namespace roadmanager
 		*/
 		int IsDirectlyConnected(int road1_id, int road2_id, double& angle);
 
-		bool IsIndirectlyConnected(int road1_id, int road2_id, int* &connecting_road_id, int* &connecting_lane_id, int lane1_id = 0, int lane2_id = 0);
+//		bool IsIndirectlyConnected(int road1_id, int road2_id, int* &connecting_road_id, int* &connecting_lane_id, int lane1_id = 0, int lane2_id = 0);
 
 		/**
 			Add any missing connections so that road connectivity is two-ways
