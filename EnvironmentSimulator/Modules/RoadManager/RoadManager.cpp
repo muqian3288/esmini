@@ -2543,7 +2543,7 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 		{
 			//Get the string to parse, geoReference tag is just a string with the data separated by spaces and each attribute start with a + character
 			std::string geo_ref_str = header_node.child_value("geoReference");
-			ParseGeoLocalization(geo_ref_str);
+//			ParseGeoLocalization(geo_ref_str);
 		}
 	}
 
@@ -3297,7 +3297,7 @@ bool OpenDrive::LoadOpenDriveFile(const char *filename, bool replace)
 					if(!country_file_loaded || current_country != country)
 					{
 						current_country = country;
-						country_file_loaded = LoadSignalsByCountry(country);
+//						country_file_loaded = LoadSignalsByCountry(country);
 					}
 
 					// type
@@ -4681,203 +4681,203 @@ int OpenDrive::IsDirectlyConnected(int road1_id, int road2_id, double& angle)
 //	return &geo_ref_;
 //}
 
-std::string OpenDrive::GetGeoReferenceAsString()
-{
-	std::ostringstream out;
-    if(!std::isnan(geo_ref_.lat_0_) && !std::isnan(geo_ref_.lon_0_))
-	{
-		out.precision(13);
-		out << "+proj=" << geo_ref_.proj_ << " +lat_0=" << std::fixed << geo_ref_.lat_0_ << " +lon_0=" << std::fixed << geo_ref_.lon_0_;
-	}
-    return out.str();
-}
+//std::string OpenDrive::GetGeoReferenceAsString()
+//{
+//	std::ostringstream out;
+//    if(!std::isnan(geo_ref_.lat_0_) && !std::isnan(geo_ref_.lon_0_))
+//	{
+//		out.precision(13);
+//		out << "+proj=" << geo_ref_.proj_ << " +lat_0=" << std::fixed << geo_ref_.lat_0_ << " +lon_0=" << std::fixed << geo_ref_.lon_0_;
+//	}
+//    return out.str();
+//}
+//
+//void OpenDrive::ParseGeoLocalization(const std::string& geoLocalization)
+//{
+//	std::map<std::string, std::string> attributes;
+//	char space_char = ' ';
+//	char asignment_char = '=';
+//
+//	std::stringstream sstream(geoLocalization);
+//	std::string attribute = "";
+//	//Get each attribute of geoReference
+//	while (std::getline(sstream, attribute, space_char))
+//	{
+//		std::stringstream sstream_attrib(attribute);
+//		std::string key_value = "";
+//		std::string attribute_key = "";
+//		std::string attribute_value = "";
+//		//Get key and value of each attribute
+//		while (std::getline(sstream_attrib, key_value, asignment_char))
+//		{
+//			//Keys starts with a + character
+//			if(key_value.rfind('+', 0) == 0)
+//			{
+//				attribute_key = key_value;
+//			}else
+//			{
+//				attribute_value = key_value;
+//			}
+//		}
+//		attributes.emplace(attribute_key, attribute_value);
+//	}
+//
+//	for(const auto& attr : attributes)
+//	{
+//		if(attr.first == "+a")
+//		{
+//			geo_ref_.a_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+axis")
+//		{
+//			geo_ref_.axis_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+b")
+//		{
+//			geo_ref_.b_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+ellps")
+//		{
+//			geo_ref_.ellps_ = attr.second;
+//		}
+//		else if (attr.first == "+k")
+//		{
+//			geo_ref_.k_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+k_0")
+//		{
+//			geo_ref_.k_0_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+lat_0")
+//		{
+//			geo_ref_.lat_0_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+lon_0")
+//		{
+//			geo_ref_.lon_0_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+lon_wrap")
+//		{
+//			geo_ref_.lon_wrap_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+over")
+//		{
+//			geo_ref_.over_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+pm")
+//		{
+//			geo_ref_.pm_ = attr.second;
+//		}
+//		else if (attr.first == "+proj")
+//		{
+//			geo_ref_.proj_ = attr.second;
+//		}
+//		else if (attr.first == "+units")
+//		{
+//			geo_ref_.units_ = attr.second;
+//		}
+//		else if (attr.first == "+vunits")
+//		{
+//			geo_ref_.vunits_ = attr.second;
+//		}
+//		else if (attr.first == "+x_0")
+//		{
+//			geo_ref_.x_0_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+y_0")
+//		{
+//			geo_ref_.y_0_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+datum")
+//		{
+//			geo_ref_.datum_ = attr.second;
+//		}
+//		else if (attr.first == "+geoidgrids")
+//		{
+//			geo_ref_.geo_id_grids_ = attr.second;
+//		}
+//		else if (attr.first == "+zone")
+//		{
+//			geo_ref_.zone_ = std::stod(attr.second);
+//		}
+//		else if (attr.first == "+towgs84")
+//		{
+//			geo_ref_.towgs84_ = std::stoi(attr.second);
+//		}
+//		else
+//		{
+//			LOG("Unsupported geo reference attr: %s", attr.first.c_str());
+//		}
+//	}
+//
+//	if (std::isnan(geo_ref_.lat_0_) || std::isnan(geo_ref_.lon_0_))
+//	{
+//		LOG("cannot parse georeference: '%s'. Using default values.", geoLocalization.c_str());
+//		geo_ref_.lat_0_ = 0.0;
+//		geo_ref_.lon_0_ = 0.0;
+//	}
+//}
 
-void OpenDrive::ParseGeoLocalization(const std::string& geoLocalization)
-{
-	std::map<std::string, std::string> attributes;
-	char space_char = ' ';
-	char asignment_char = '=';
-
-	std::stringstream sstream(geoLocalization);
-	std::string attribute = "";
-	//Get each attribute of geoReference
-	while (std::getline(sstream, attribute, space_char))
-	{
-		std::stringstream sstream_attrib(attribute);
-		std::string key_value = "";
-		std::string attribute_key = "";
-		std::string attribute_value = "";
-		//Get key and value of each attribute
-		while (std::getline(sstream_attrib, key_value, asignment_char))
-		{
-			//Keys starts with a + character
-			if(key_value.rfind('+', 0) == 0)
-			{
-				attribute_key = key_value;
-			}else
-			{
-				attribute_value = key_value;
-			}
-		}
-		attributes.emplace(attribute_key, attribute_value);
-	}
-
-	for(const auto& attr : attributes)
-	{
-		if(attr.first == "+a")
-		{
-			geo_ref_.a_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+axis")
-		{
-			geo_ref_.axis_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+b")
-		{
-			geo_ref_.b_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+ellps")
-		{
-			geo_ref_.ellps_ = attr.second;
-		}
-		else if (attr.first == "+k")
-		{
-			geo_ref_.k_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+k_0")
-		{
-			geo_ref_.k_0_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+lat_0")
-		{
-			geo_ref_.lat_0_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+lon_0")
-		{
-			geo_ref_.lon_0_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+lon_wrap")
-		{
-			geo_ref_.lon_wrap_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+over")
-		{
-			geo_ref_.over_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+pm")
-		{
-			geo_ref_.pm_ = attr.second;
-		}
-		else if (attr.first == "+proj")
-		{
-			geo_ref_.proj_ = attr.second;
-		}
-		else if (attr.first == "+units")
-		{
-			geo_ref_.units_ = attr.second;
-		}
-		else if (attr.first == "+vunits")
-		{
-			geo_ref_.vunits_ = attr.second;
-		}
-		else if (attr.first == "+x_0")
-		{
-			geo_ref_.x_0_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+y_0")
-		{
-			geo_ref_.y_0_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+datum")
-		{
-			geo_ref_.datum_ = attr.second;
-		}
-		else if (attr.first == "+geoidgrids")
-		{
-			geo_ref_.geo_id_grids_ = attr.second;
-		}
-		else if (attr.first == "+zone")
-		{
-			geo_ref_.zone_ = std::stod(attr.second);
-		}
-		else if (attr.first == "+towgs84")
-		{
-			geo_ref_.towgs84_ = std::stoi(attr.second);
-		}
-		else
-		{
-			LOG("Unsupported geo reference attr: %s", attr.first.c_str());
-		}
-	}
-
-	if (std::isnan(geo_ref_.lat_0_) || std::isnan(geo_ref_.lon_0_))
-	{
-		LOG("cannot parse georeference: '%s'. Using default values.", geoLocalization.c_str());
-		geo_ref_.lat_0_ = 0.0;
-		geo_ref_.lon_0_ = 0.0;
-	}
-}
-
-bool OpenDrive::LoadSignalsByCountry(const std::string& country)
-{
-	std::vector<std::string> file_name_candidates;
-	// absolute path or relative to current directory
-	file_name_candidates.push_back("../../../resources/traffic_signals/" + country + "_traffic_signals.txt");
-	// relative path to scenario directory
-	file_name_candidates.push_back("resources/traffic_signals/" + country + "_traffic_signals.txt");
-	// Remove all directories from path and look in current directory
-	file_name_candidates.push_back(country + "_traffic_signals.txt");
-	// Finally check registered paths
-	for (size_t i = 0; i < SE_Env::Inst().GetPaths().size(); i++)
-	{
-		file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], "resources/traffic_signals/" + country + "_traffic_signals.txt"));
-		file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], country + "_traffic_signals.txt"));
-	}
-	size_t i;
-	bool located = false;
-	for (i = 0; i < file_name_candidates.size(); i++)
-	{
-		if (FileExists(file_name_candidates[i].c_str()))
-		{
-			located = true;
-			std::string line;
-			// assuming the file is text
-			std::ifstream fs;
-			fs.open(file_name_candidates[i].c_str());
-
-			if(fs.fail())
-			{
-				LOG("Signal: Error to load traffic signals file - %s\n", file_name_candidates[i].c_str());
-				if (i < file_name_candidates.size() - 1)
-				{
-					LOG("  -> trying: %s", file_name_candidates[i + 1].c_str());
-				}
-			}else
-			{
-				const char delimiter = '=';
-
-				// process each line in turn
-				while(std::getline(fs, line))
-				{
-					std::stringstream sstream(line);
-					std::string key = "";
-					std::string value = "";
-
-					std::getline(sstream, key, delimiter);
-					std::getline(sstream, value, delimiter);
-
-					signals_types_.emplace(key, value);
-				}
-
-				fs.close();
-
-				break;
-			}
-		}
-	}
-
-	return true;
-}
+//bool OpenDrive::LoadSignalsByCountry(const std::string& country)
+//{
+//	std::vector<std::string> file_name_candidates;
+//	// absolute path or relative to current directory
+//	file_name_candidates.push_back("../../../resources/traffic_signals/" + country + "_traffic_signals.txt");
+//	// relative path to scenario directory
+//	file_name_candidates.push_back("resources/traffic_signals/" + country + "_traffic_signals.txt");
+//	// Remove all directories from path and look in current directory
+//	file_name_candidates.push_back(country + "_traffic_signals.txt");
+//	// Finally check registered paths
+//	for (size_t i = 0; i < SE_Env::Inst().GetPaths().size(); i++)
+//	{
+//		file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], "resources/traffic_signals/" + country + "_traffic_signals.txt"));
+//		file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], country + "_traffic_signals.txt"));
+//	}
+//	size_t i;
+//	bool located = false;
+//	for (i = 0; i < file_name_candidates.size(); i++)
+//	{
+//		if (FileExists(file_name_candidates[i].c_str()))
+//		{
+//			located = true;
+//			std::string line;
+//			// assuming the file is text
+//			std::ifstream fs;
+//			fs.open(file_name_candidates[i].c_str());
+//
+//			if(fs.fail())
+//			{
+//				LOG("Signal: Error to load traffic signals file - %s\n", file_name_candidates[i].c_str());
+//				if (i < file_name_candidates.size() - 1)
+//				{
+//					LOG("  -> trying: %s", file_name_candidates[i + 1].c_str());
+//				}
+//			}else
+//			{
+//				const char delimiter = '=';
+//
+//				// process each line in turn
+//				while(std::getline(fs, line))
+//				{
+//					std::stringstream sstream(line);
+//					std::string key = "";
+//					std::string value = "";
+//
+//					std::getline(sstream, key, delimiter);
+//					std::getline(sstream, value, delimiter);
+//
+//					signals_types_.emplace(key, value);
+//				}
+//
+//				fs.close();
+//
+//				break;
+//			}
+//		}
+//	}
+//
+//	return true;
+//}
 
 void Position::Init()
 {
