@@ -4475,28 +4475,28 @@ bool OpenDrive::IsIndirectlyConnected(int road1_id, int road2_id, int* &connecti
 	return false;
 }
 
-int OpenDrive::CheckConnectedRoad(Road *road, RoadLink *link, ContactPointType expected_contact_point_type, RoadLink *link2)
-{
-	if (link2 == 0)
-	{
-		return -1;
-	}
-
-	if (link2->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
-	{
-		if (link->GetElementId() == road->GetId())
-		{
-			if (link->GetContactPointType() != expected_contact_point_type)
-			{
-				LOG("Found connecting road from other end, but contact point is wrong (expected START, got %s)",
-					ContactPointType2Str(link->GetContactPointType()).c_str());
-				return -1;
-			}
-		}
-	}
-
-	return 0;
-}
+//int OpenDrive::CheckConnectedRoad(Road *road, RoadLink *link, ContactPointType expected_contact_point_type, RoadLink *link2)
+//{
+//	if (link2 == 0)
+//	{
+//		return -1;
+//	}
+//
+//	if (link2->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
+//	{
+//		if (link->GetElementId() == road->GetId())
+//		{
+//			if (link->GetContactPointType() != expected_contact_point_type)
+//			{
+//				LOG("Found connecting road from other end, but contact point is wrong (expected START, got %s)",
+//					ContactPointType2Str(link->GetContactPointType()).c_str());
+//				return -1;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
 int OpenDrive::CheckJunctionConnection(Junction *junction, Connection *connection)
 {
@@ -4592,53 +4592,53 @@ int OpenDrive::CheckJunctionConnection(Junction *junction, Connection *connectio
 	return -1;
 }
 
-int OpenDrive::CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type)
-{
-	// does this connection exist in the other direction?
-	if (link->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
-	{
-		Road *connecting_road = GetRoadById(link->GetElementId());
-		if (connecting_road != 0)
-		{
-			if (CheckConnectedRoad(road, link, expected_contact_point_type, connecting_road->GetLink(LinkType::PREDECESSOR)) == 0)
-			{
-				return 0;
-			}
-			else if (CheckConnectedRoad(road, link, expected_contact_point_type, connecting_road->GetLink(LinkType::SUCCESSOR)) == 0)
-			{
-				return 0;
-			}
-			else
-			{
-				LOG("Warning: Reversed road link %d->%d not found. Might be a flaw in the OpenDRIVE description.", road->GetId(), connecting_road->GetId());
-			}
-		}
-	}
-	else if (link->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_JUNCTION)
-	{
-		Junction *junction = GetJunctionById(link->GetElementId());
-
-		// Check all outgoing connections
-		if (junction == nullptr)
-		{
-			LOG("Info: Junction id %d, referred to by road %d, does not exist", link->GetElementId(), road->GetId());
-			return -1;
-		}
-
-		int nrConnections = junction->GetNumberOfConnections();
-		for (int i = 0; i < nrConnections; i++)
-		{
-			Connection *connection = junction->GetConnectionByIdx((int)i);
-
-			if (connection->GetIncomingRoad() == road)
-			{
-				CheckJunctionConnection(junction, connection);
-			}
-		}
-	}
-
-	return 0;
-}
+//int OpenDrive::CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type)
+//{
+//	// does this connection exist in the other direction?
+//	if (link->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
+//	{
+//		Road *connecting_road = GetRoadById(link->GetElementId());
+//		if (connecting_road != 0)
+//		{
+//			if (CheckConnectedRoad(road, link, expected_contact_point_type, connecting_road->GetLink(LinkType::PREDECESSOR)) == 0)
+//			{
+//				return 0;
+//			}
+//			else if (CheckConnectedRoad(road, link, expected_contact_point_type, connecting_road->GetLink(LinkType::SUCCESSOR)) == 0)
+//			{
+//				return 0;
+//			}
+//			else
+//			{
+//				LOG("Warning: Reversed road link %d->%d not found. Might be a flaw in the OpenDRIVE description.", road->GetId(), connecting_road->GetId());
+//			}
+//		}
+//	}
+//	else if (link->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_JUNCTION)
+//	{
+//		Junction *junction = GetJunctionById(link->GetElementId());
+//
+//		// Check all outgoing connections
+//		if (junction == nullptr)
+//		{
+//			LOG("Info: Junction id %d, referred to by road %d, does not exist", link->GetElementId(), road->GetId());
+//			return -1;
+//		}
+//
+//		int nrConnections = junction->GetNumberOfConnections();
+//		for (int i = 0; i < nrConnections; i++)
+//		{
+//			Connection *connection = junction->GetConnectionByIdx((int)i);
+//
+//			if (connection->GetIncomingRoad() == road)
+//			{
+//				CheckJunctionConnection(junction, connection);
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
 int OpenDrive::CheckConnections()
 {
