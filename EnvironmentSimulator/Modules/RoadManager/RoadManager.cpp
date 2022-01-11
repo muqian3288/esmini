@@ -1,4 +1,4 @@
-﻿/*
+/*
  * esmini - Environment Simulator Minimalistic
  * https://github.com/esmini/esmini
  *
@@ -2366,17 +2366,17 @@ Road *OpenDrive::GetRoadByIdx(int idx)
 	}
 }
 
-Geometry *OpenDrive::GetGeometryByIdx(int road_idx, int geom_idx)
-{
-	if (road_idx >= 0 && road_idx < (int)road_.size())
-	{
-		return road_[road_idx]->GetGeometry(geom_idx);
-	}
-	else
-	{
-		return 0;
-	}
-}
+// Geometry *OpenDrive::GetGeometryByIdx(int road_idx, int geom_idx)
+// {
+// 	if (road_idx >= 0 && road_idx < (int)road_.size())
+// 	{
+// 		return road_[road_idx]->GetGeometry(geom_idx);
+// 	}
+// 	else
+// 	{
+// 		return 0;
+// 	}
+// }
 
 Junction* OpenDrive::GetJunctionById(int id)
 {
@@ -6939,34 +6939,34 @@ int Position::MoveToConnectingRoad(RoadLink *road_link, ContactPointType &contac
 
 double Position::DsToDistance(double ds)
 {
-	// Add or subtract stepsize according to curvature and offset, in order to keep constant speed
-	double curvature = GetCurvature();
-	double offset = GetT();
+	// // Add or subtract stepsize according to curvature and offset, in order to keep constant speed
+	// double curvature = GetCurvature();
+	// double offset = GetT();
 
-	// Also compensate for any lane offset at current road position (if available)
-	if (GetOpenDrive())
-	{
-		roadmanager::Road* road = GetOpenDrive()->GetRoadById(GetTrackId());
-		if (road != nullptr)
-		{
-			offset += road->GetLaneOffset(GetS());
-		}
-	}
+	// // Also compensate for any lane offset at current road position (if available)
+	// if (GetOpenDrive())
+	// {
+	// 	roadmanager::Road* road = GetOpenDrive()->GetRoadById(GetTrackId());
+	// 	if (road != nullptr)
+	// 	{
+	// 		offset += road->GetLaneOffset(GetS());
+	// 	}
+	// }
 
-	if (abs(curvature) > SMALL_NUMBER)
-	{
-		// Approximate delta length by sampling curvature in current position
-		if (curvature * offset > 1.0 - SMALL_NUMBER)
-		{
-			// Radius not large enough for offset, probably being closer to another road segment
-			XYZH2TrackPos(GetX(), GetY(), GetY(), GetH(), true);
-			SetHeadingRelative(GetHRelative());
-			curvature = GetCurvature();
-			offset = GetT();
-		}
-		double stepScaleFactor = 1 / (1 - curvature * offset);
-		ds *= stepScaleFactor;
-	}
+	// if (abs(curvature) > SMALL_NUMBER)
+	// {
+	// 	// Approximate delta length by sampling curvature in current position
+	// 	if (curvature * offset > 1.0 - SMALL_NUMBER)
+	// 	{
+	// 		// Radius not large enough for offset, probably being closer to another road segment
+	// 		XYZH2TrackPos(GetX(), GetY(), GetY(), GetH(), true);
+	// 		SetHeadingRelative(GetHRelative());
+	// 		curvature = GetCurvature();
+	// 		offset = GetT();
+	// 	}
+	// 	double stepScaleFactor = 1 / (1 - curvature * offset);
+	// 	ds *= stepScaleFactor;
+	// }
 
 	return ds;
 }
@@ -7503,19 +7503,19 @@ void Position::EvaluateOrientation()
 	}
 }
 
-double Position::GetCurvature()
-{
-	Geometry *geom = GetOpenDrive()->GetGeometryByIdx(track_idx_, geometry_idx_);
+// double Position::GetCurvature()
+// {
+// 	Geometry *geom = GetOpenDrive()->GetGeometryByIdx(track_idx_, geometry_idx_);
 
-	if (geom)
-	{
-		return geom->EvaluateCurvatureDS(GetS() - geom->GetS());
-	}
-	else
-	{
-		return 0;
-	}
-}
+// 	if (geom)
+// 	{
+// 		return geom->EvaluateCurvatureDS(GetS() - geom->GetS());
+// 	}
+// 	else
+// 	{
+// 		return 0;
+// 	}
+// }
 
 int Position::GetDrivingDirectionRelativeRoad() const
 {
@@ -7575,20 +7575,20 @@ double Position::GetSpeedLimit()
 double Position::GetDrivingDirection() const
 {
 	double x, y, h;
-	Geometry *geom = GetOpenDrive()->GetGeometryByIdx(track_idx_, geometry_idx_);
-
-	if (!geom)
-	{
-		return h_;
-	}
-
-	geom->EvaluateDS(GetS() - geom->GetS(), &x, &y, &h);
-
-	// adjust 180 degree according to side of road
-	if (GetLaneId() > 0)  // Left side of road reference line
-	{
-		h = GetAngleSum(h, M_PI);
-	}
+//	Geometry *geom = GetOpenDrive()->GetGeometryByIdx(track_idx_, geometry_idx_);
+//
+//	if (!geom)
+//	{
+//		return h_;
+//	}
+//
+//	geom->EvaluateDS(GetS() - geom->GetS(), &x, &y, &h);
+//
+//	// adjust 180 degree according to side of road
+//	if (GetLaneId() > 0)  // Left side of road reference line
+//	{
+//		h = GetAngleSum(h, M_PI);
+//	}
 
 	return(h);
 }
@@ -8055,40 +8055,41 @@ bool Position::IsAheadOf(Position target_position)
 	return(diff_x0 < 0);
 }
 
+//查询当前位置的RoadLaneInfo
 int Position::GetRoadLaneInfo(RoadLaneInfo *data)
 {
-	if (fabs(GetCurvature()) > SMALL_NUMBER)
-	{
-		double radius = 1.0 / GetCurvature();
-		radius -= GetT(); // curvature positive in left curves, lat_offset positive left of reference lane
-		data->curvature = (1.0 / radius);
-	}
-	else
-	{
-		// curvature close to zero (straight segment), radius infitite - curvature the same in all lanes
-		data->curvature = GetCurvature();
-	}
-
-	data->pos[0] = GetX();
-	data->pos[1] = GetY();
-	data->pos[2] = GetZRoad();
-	data->heading = GetHRoad();
-	data->pitch = GetPRoad();
-	data->roll = GetRRoad();
-	data->laneId = GetLaneId();
-	data->laneOffset = GetOffset();
-	data->roadId = GetTrackId();
-	data->junctionId = GetJunctionId();
-	data->t = GetT();
-	data->s = GetS();
-
-	// Then find out the width of the lane at current s-value
-	Road *road = GetRoadById(GetTrackId());
-	if (road)
-	{
-		data->width = road->GetLaneWidthByS(GetS(), GetLaneId());
-		data->speed_limit = road->GetSpeedByS(GetS());
-	}
+//	if (fabs(GetCurvature()) > SMALL_NUMBER)
+//	{
+//		double radius = 1.0 / GetCurvature();
+//		radius -= GetT(); // curvature positive in left curves, lat_offset positive left of reference lane
+//		data->curvature = (1.0 / radius);
+//	}
+//	else
+//	{
+//		// curvature close to zero (straight segment), radius infitite - curvature the same in all lanes
+//		data->curvature = GetCurvature();
+//	}
+//
+//	data->pos[0] = GetX();
+//	data->pos[1] = GetY();
+//	data->pos[2] = GetZRoad();
+//	data->heading = GetHRoad();
+//	data->pitch = GetPRoad();
+//	data->roll = GetRRoad();
+//	data->laneId = GetLaneId();
+//	data->laneOffset = GetOffset();
+//	data->roadId = GetTrackId();
+//	data->junctionId = GetJunctionId();
+//	data->t = GetT();
+//	data->s = GetS();
+//
+//	// Then find out the width of the lane at current s-value
+//	Road *road = GetRoadById(GetTrackId());
+//	if (road)
+//	{
+//		data->width = road->GetLaneWidthByS(GetS(), GetLaneId());
+//		data->speed_limit = road->GetSpeedByS(GetS());
+//	}
 
 	return 0;
 }

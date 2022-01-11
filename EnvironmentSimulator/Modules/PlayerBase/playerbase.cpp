@@ -1060,7 +1060,7 @@ void ScenarioPlayer::UpdateCSV_Log()
 			obj->id_, obj->speed_, obj->wheel_angle_, obj->wheel_rot_,
 			pos.GetX(), pos.GetY(), pos.GetZ(), pos.GetVelX(), pos.GetVelY(), pos.GetVelZ(), pos.GetAccX(), pos.GetAccY(), pos.GetAccZ(),
 			pos.GetS(), pos.GetT(), pos.GetH(), pos.GetHRate(), pos.GetHRelative(), pos.GetHRelativeDrivingDirection(),
-			pos.GetP(), pos.GetCurvature());
+			pos.GetP(), 1/*pos.GetCurvature()*/);
 	}
 }
 

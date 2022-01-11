@@ -203,13 +203,13 @@ void ControllerRel2Abs::Step(double timeStep)
 					double v = object->GetSpeed();
 					double steplen = v * pred_timestep;
 					// Add or subtract stepsize according to curvature and offset, in order to keep constant speed
-					double curvature = object->pos_.GetCurvature();
+					// double curvature = object->pos_.GetCurvature();
 					double offset = object->pos_.GetT();
-					if (abs(curvature) > SMALL_NUMBER)
-					{
-						// Approximate delta length by sampling curvature in current position
-						steplen += steplen * curvature * offset;
-					}
+					// if (abs(curvature) > SMALL_NUMBER)
+					// {
+					// 	// Approximate delta length by sampling curvature in current position
+					// 	steplen += steplen * curvature * offset;
+					// }
 
 					if (!object->CheckDirtyBits(Object::DirtyBit::LONGITUDINAL))
 					{
