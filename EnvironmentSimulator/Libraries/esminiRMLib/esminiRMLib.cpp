@@ -677,7 +677,7 @@ extern "C"
 	{
 		if (odrManager != nullptr)
 		{
-			roadmanager::GeoReference* geoReference = odrManager->GetGeoReference();
+			roadmanager::GeoReference* geoReference = nullptr;//odrManager->GetGeoReference();
 			if (geoReference == nullptr)
 			{
 				return -1;

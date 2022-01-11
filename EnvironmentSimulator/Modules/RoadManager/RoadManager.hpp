@@ -1554,7 +1554,7 @@ namespace roadmanager
 		// int CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type);
 //		int CheckConnectedRoad(Road *road, RoadLink *link, ContactPointType expected_contact_point_type, RoadLink *link2);
 //		int CheckJunctionConnection(Junction *junction, Connection *connection);
-		std::string ContactPointType2Str(ContactPointType type);
+//		std::string ContactPointType2Str(ContactPointType type);
 
         int GetNumberOfControllers() { return (int)controller_.size(); }
 		Controller* GetControllerByIdx(int index);
@@ -1567,7 +1567,7 @@ namespace roadmanager
 
 		bool LoadSignalsByCountry(const std::string& country);
 
-		void Print();
+//		void Print();
 
 	private:
 		pugi::xml_node root_node_;

@@ -2417,29 +2417,29 @@ void OpenDrive::InitGlobalLaneIds()
 	g_Laneb_id = 0;
 }
 
-Controller* OpenDrive::GetControllerByIdx(int index)
-{
-	if (index >= 0 && index < controller_.size())
-	{
-		return &controller_[index];
-	}
+//Controller* OpenDrive::GetControllerByIdx(int index)
+//{
+//	if (index >= 0 && index < controller_.size())
+//	{
+//		return &controller_[index];
+//	}
+//
+//	return 0;
+//}
 
-	return 0;
-}
-
-Controller* OpenDrive::GetControllerById(int id)
-{
-	// look for this controller in global list
-	for (int i = 0; i < GetNumberOfControllers(); i++)
-	{
-		if (id == GetControllerByIdx(i)->GetId())
-		{
-			return GetControllerByIdx(i);
-		}
-	}
-
-	return nullptr;
-}
+//Controller* OpenDrive::GetControllerById(int id)
+//{
+//	// look for this controller in global list
+//	for (int i = 0; i < GetNumberOfControllers(); i++)
+//	{
+//		if (id == GetControllerByIdx(i)->GetId())
+//		{
+//			return GetControllerByIdx(i);
+//		}
+//	}
+//
+//	return nullptr;
+//}
 
 std::string ReadAttribute(pugi::xml_node node, std::string attribute_name, bool required)
 {
@@ -4661,25 +4661,25 @@ int OpenDrive::IsDirectlyConnected(int road1_id, int road2_id, double& angle)
 // 	return counter;
 // }
 
-void OpenDrive::Print()
-{
-	LOG("Roads:\n");
-	for (size_t i=0; i<road_.size(); i++)
-	{
-		road_[i]->Print();
-	}
+//void OpenDrive::Print()
+//{
+//	LOG("Roads:\n");
+//	for (size_t i=0; i<road_.size(); i++)
+//	{
+//		road_[i]->Print();
+//	}
+//
+//	LOG("junctions\n");
+//	for (size_t i=0; i<junction_.size(); i++)
+//	{
+//		junction_[i]->Print();
+//	}
+//}
 
-	LOG("junctions\n");
-	for (size_t i=0; i<junction_.size(); i++)
-	{
-		junction_[i]->Print();
-	}
-}
-
-GeoReference* OpenDrive::GetGeoReference()
-{
-	return &geo_ref_;
-}
+//GeoReference* OpenDrive::GetGeoReference()
+//{
+//	return &geo_ref_;
+//}
 
 std::string OpenDrive::GetGeoReferenceAsString()
 {
@@ -6692,30 +6692,30 @@ void Position::ForceLaneId(int lane_id)
 	lane_id_ = lane_id;
 	offset_ -= lat_dist;
 }
-
-std::string OpenDrive::ContactPointType2Str(ContactPointType type)
-{
-	if (type == ContactPointType::CONTACT_POINT_START)
-	{
-		return "PREDECESSOR";
-	}
-	else if (type == ContactPointType::CONTACT_POINT_END)
-	{
-		return "SUCCESSOR";
-	}
-	else if (type == ContactPointType::CONTACT_POINT_NONE)
-	{
-		return "NONE";
-	}
-	else if (type == ContactPointType::CONTACT_POINT_UNKNOWN)
-	{
-		return "UNKNOWN";
-	}
-	else
-	{
-		return "UNDEFINED";
-	}
-}
+//
+//std::string OpenDrive::ContactPointType2Str(ContactPointType type)
+//{
+//	if (type == ContactPointType::CONTACT_POINT_START)
+//	{
+//		return "PREDECESSOR";
+//	}
+//	else if (type == ContactPointType::CONTACT_POINT_END)
+//	{
+//		return "SUCCESSOR";
+//	}
+//	else if (type == ContactPointType::CONTACT_POINT_NONE)
+//	{
+//		return "NONE";
+//	}
+//	else if (type == ContactPointType::CONTACT_POINT_UNKNOWN)
+//	{
+//		return "UNKNOWN";
+//	}
+//	else
+//	{
+//		return "UNDEFINED";
+//	}
+//}
 
 int Position::MoveToConnectingRoad(RoadLink *road_link, ContactPointType &contact_point_type, double junctionSelectorAngle)
 {
