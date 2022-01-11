@@ -1,4 +1,4 @@
-﻿/*
+/*
  * esmini - Environment Simulator Minimalistic
  * https://github.com/esmini/esmini
  *
@@ -28,7 +28,7 @@ namespace roadmanager
 	int GetNewGlobalLaneId();
 	int GetNewGlobalLaneBoundaryId();
 
-
+	// 多项式
 	class Polynomial
 	{
 	public:
