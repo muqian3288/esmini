@@ -29,3 +29,5 @@ test/stdout.txt
 test/__pycache__
 code-examples-bin/
 resources/models.7z
+cmake-build-debug/
+.idea/
