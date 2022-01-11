@@ -1219,8 +1219,8 @@ namespace roadmanager
 		int GetId() { return id_; }
 		RoadRule GetRule() { return rule_; }
 		void SetName(std::string name) { name_ = name; }
-		Geometry *GetGeometry(int idx);
-		int GetNumberOfGeometries() { return (int)geometry_.size(); }
+//		Geometry *GetGeometry(int idx);
+//		int GetNumberOfGeometries() { return (int)geometry_.size(); }
 
 		/**
 		Retrieve the lanesection specified by vector element index (idx)
@@ -1271,11 +1271,11 @@ namespace roadmanager
 		int GetNumberOfRoadTypes() const {return (int)type_.size();}
 		RoadTypeEntry *GetRoadType(int idx);
 		RoadLink *GetLink(LinkType type);
-		void AddLine(Line *line);
-		void AddArc(Arc *arc);
-		void AddSpiral(Spiral *spiral);
-		void AddPoly3(Poly3 *poly3);
-		void AddParamPoly3(ParamPoly3 *param_poly3);
+//		void AddLine(Line *line);
+//		void AddArc(Arc *arc);
+//		void AddSpiral(Spiral *spiral);
+//		void AddPoly3(Poly3 *poly3);
+//		void AddParamPoly3(ParamPoly3 *param_poly3);
 		void AddElevation(Elevation *elevation);
 		void AddSuperElevation(Elevation *super_elevation);
 		void AddLaneSection(LaneSection *lane_section);
@@ -1315,7 +1315,7 @@ namespace roadmanager
 
 		std::vector<RoadTypeEntry*> type_;
 		std::vector<RoadLink*> link_;
-		std::vector<Geometry*> geometry_;
+//		std::vector<Geometry*> geometry_;
 		std::vector<Elevation*> elevation_profile_;
 		std::vector<Elevation*> super_elevation_profile_;
 		std::vector<LaneSection*> lane_section_;
@@ -1525,7 +1525,7 @@ namespace roadmanager
 			@param idx index into the vector of roads
 		*/
 		Road* GetRoadByIdx(int idx);
-		Geometry* GetGeometryByIdx(int road_idx, int geom_idx);
+		// Geometry* GetGeometryByIdx(int road_idx, int geom_idx);
 		int GetTrackIdxById(int id);
 		int GetTrackIdByIdx(int idx);
 		int GetNumOfRoads() { return (int)road_.size(); }
@@ -2106,10 +2106,10 @@ namespace roadmanager
 		double GetPRoadInDrivingDirection();
 
 
-		/**
-		Retrieve the road curvature at current position
-		*/
-		double GetCurvature();
+		// /**
+		// Retrieve the road curvature at current position
+		// */
+		// double GetCurvature();
 
 		/**
 		Retrieve the speed limit at current position
