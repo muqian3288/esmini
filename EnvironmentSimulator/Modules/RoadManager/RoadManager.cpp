@@ -4498,99 +4498,99 @@ bool OpenDrive::IsIndirectlyConnected(int road1_id, int road2_id, int* &connecti
 //	return 0;
 //}
 
-int OpenDrive::CheckJunctionConnection(Junction *junction, Connection *connection)
-{
-	if (junction == 0)
-	{
-		return -1;
-	}
-
-	// Check if junction is referred to from the connected road
-	Road *road = connection->GetConnectingRoad();
-	if (road == 0)
-	{
-		LOG("Error no connecting road");
-		return -1;
-	}
-
-	RoadLink *link[2];
-	link[0] = road->GetLink(LinkType::PREDECESSOR);
-	link[1] = road->GetLink(LinkType::SUCCESSOR);
-	for (int i = 0; i < 2; i++)
-	{
-		if (link[i] != 0)
-		{
-			if (link[i]->GetElementType() != RoadLink::ElementType::ELEMENT_TYPE_ROAD)
-			{
-				LOG("Expected element type ROAD, found %d", link[i]->GetElementType());
-				return -1;
-			}
-
-			if (link[i]->GetElementId() != connection->GetIncomingRoad()->GetId())
-			{
-				// Check connection from this outgoing road
-				Road *roadc = GetRoadById(link[i]->GetElementId());
-				RoadLink *link2[2];
-				link2[0] = roadc->GetLink(LinkType::PREDECESSOR);
-				link2[1] = roadc->GetLink(LinkType::SUCCESSOR);
-				for (int j = 0; j < 2; j++)
-				{
-					if (link2[j] != 0)
-					{
-						if (link2[j]->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_JUNCTION &&
-							link2[j]->GetElementId() == junction->GetId())
-						{
-							// Now finally find the reverse link
-							for (int k = 0; k < junction->GetNumberOfConnections(); k++)
-							{
-								if (junction->GetConnectionByIdx(k)->GetIncomingRoad() == roadc)
-								{
-									// Sharing same connecting road?
-									if (junction->GetConnectionByIdx(k)->GetConnectingRoad() == connection->GetConnectingRoad())
-									{
-										return 0;
-									}
-								}
-							}
-
-							// Create counter connections on other side of connecting road
-							LinkType newLinkType = (i == 0 ? LinkType::PREDECESSOR : LinkType::SUCCESSOR);
-							RoadLink* newLink = connection->GetConnectingRoad()->GetLink(newLinkType);
-							if (newLink && newLink->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
-							{
-								ContactPointType new_contact_point =
-									connection->GetContactPoint() == ContactPointType::CONTACT_POINT_END ?
-									ContactPointType::CONTACT_POINT_START : ContactPointType::CONTACT_POINT_END;
-
-								// Create new connection to the connecting road from other side
-								Connection* newConnection = new Connection(GetRoadById(newLink->GetElementId()), connection->GetConnectingRoad(), new_contact_point);
-
-								// Add lane links - assume only one lane section in the connecting road
-								LaneSection* ls = newConnection->GetConnectingRoad()->GetLaneSectionByIdx(0);
-								for (int l=0;l<ls->GetNumberOfLanes();l++)
-								{
-									Lane* lane = ls->GetLaneByIdx(l);
-									if (lane->GetLink(newLinkType))
-									{
-										int from_id = lane->GetId();
-										int to_id = lane->GetLink(newLinkType)->GetId();
-										newConnection->AddJunctionLaneLink(to_id, from_id);
-									}
-								}
-								if (newConnection->GetNumberOfLaneLinks() > 0)
-								{
-									junction->AddConnection(newConnection);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return -1;
-}
+//int OpenDrive::CheckJunctionConnection(Junction *junction, Connection *connection)
+//{
+//	if (junction == 0)
+//	{
+//		return -1;
+//	}
+//
+//	// Check if junction is referred to from the connected road
+//	Road *road = connection->GetConnectingRoad();
+//	if (road == 0)
+//	{
+//		LOG("Error no connecting road");
+//		return -1;
+//	}
+//
+//	RoadLink *link[2];
+//	link[0] = road->GetLink(LinkType::PREDECESSOR);
+//	link[1] = road->GetLink(LinkType::SUCCESSOR);
+//	for (int i = 0; i < 2; i++)
+//	{
+//		if (link[i] != 0)
+//		{
+//			if (link[i]->GetElementType() != RoadLink::ElementType::ELEMENT_TYPE_ROAD)
+//			{
+//				LOG("Expected element type ROAD, found %d", link[i]->GetElementType());
+//				return -1;
+//			}
+//
+//			if (link[i]->GetElementId() != connection->GetIncomingRoad()->GetId())
+//			{
+//				// Check connection from this outgoing road
+//				Road *roadc = GetRoadById(link[i]->GetElementId());
+//				RoadLink *link2[2];
+//				link2[0] = roadc->GetLink(LinkType::PREDECESSOR);
+//				link2[1] = roadc->GetLink(LinkType::SUCCESSOR);
+//				for (int j = 0; j < 2; j++)
+//				{
+//					if (link2[j] != 0)
+//					{
+//						if (link2[j]->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_JUNCTION &&
+//							link2[j]->GetElementId() == junction->GetId())
+//						{
+//							// Now finally find the reverse link
+//							for (int k = 0; k < junction->GetNumberOfConnections(); k++)
+//							{
+//								if (junction->GetConnectionByIdx(k)->GetIncomingRoad() == roadc)
+//								{
+//									// Sharing same connecting road?
+//									if (junction->GetConnectionByIdx(k)->GetConnectingRoad() == connection->GetConnectingRoad())
+//									{
+//										return 0;
+//									}
+//								}
+//							}
+//
+//							// Create counter connections on other side of connecting road
+//							LinkType newLinkType = (i == 0 ? LinkType::PREDECESSOR : LinkType::SUCCESSOR);
+//							RoadLink* newLink = connection->GetConnectingRoad()->GetLink(newLinkType);
+//							if (newLink && newLink->GetElementType() == RoadLink::ElementType::ELEMENT_TYPE_ROAD)
+//							{
+//								ContactPointType new_contact_point =
+//									connection->GetContactPoint() == ContactPointType::CONTACT_POINT_END ?
+//									ContactPointType::CONTACT_POINT_START : ContactPointType::CONTACT_POINT_END;
+//
+//								// Create new connection to the connecting road from other side
+//								Connection* newConnection = new Connection(GetRoadById(newLink->GetElementId()), connection->GetConnectingRoad(), new_contact_point);
+//
+//								// Add lane links - assume only one lane section in the connecting road
+//								LaneSection* ls = newConnection->GetConnectingRoad()->GetLaneSectionByIdx(0);
+//								for (int l=0;l<ls->GetNumberOfLanes();l++)
+//								{
+//									Lane* lane = ls->GetLaneByIdx(l);
+//									if (lane->GetLink(newLinkType))
+//									{
+//										int from_id = lane->GetId();
+//										int to_id = lane->GetLink(newLinkType)->GetId();
+//										newConnection->AddJunctionLaneLink(to_id, from_id);
+//									}
+//								}
+//								if (newConnection->GetNumberOfLaneLinks() > 0)
+//								{
+//									junction->AddConnection(newConnection);
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	return -1;
+//}
 
 //int OpenDrive::CheckLink(Road *road, RoadLink *link, ContactPointType expected_contact_point_type)
 //{
